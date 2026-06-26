@@ -6,11 +6,19 @@
   "content_scripts": [
     {
       "matches": [
-        "*://*.codeforces.com/*",
+        "*://*.codeforces.com/*"
+      ],
+      "js": [
+        "Codeforces.js"
+      ],
+      "run_at": "document_idle"
+    },
+    {
+      "matches": [
         "*://qoj.ac/*"
       ],
       "js": [
-        "CocaPepsiCF.js"
+        "QOJ.js"
       ],
       "run_at": "document_idle"
     }
