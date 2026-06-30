@@ -1,5 +1,12 @@
 (function () {
   // ==========================================
+  // 0. Zen Standings Configuration
+  // ==========================================
+  const ZEN_ON_TEXT = "Only You";
+  const ZEN_OFF_TEXT = "🌍 Reveal Standings";
+  const ZEN_HOTKEY = "\\";
+  const ZEN_ALIGN = "center"; // Options: "left", "center", "right"
+  // ==========================================
   // 1. Helper Functions
   // ==========================================
 
@@ -489,7 +496,7 @@
 
     // Create a loading screen covering the page
     const loading = document.createElement('div');
-    loading.textContent = 'CocaPepsi CF: Waiting for problems to load...';
+    loading.textContent = 'CocaPepsi CP: Waiting for problems to load...';
     Object.assign(loading.style, {
       position: 'fixed',
       top: '0',
@@ -518,11 +525,11 @@
         clearInterval(pollInterval);
 
         if (problems.length === 0) {
-          loading.textContent = 'CocaPepsi CF: No problems found on this page.';
+          loading.textContent = 'CocaPepsi CP: No problems found on this page.';
           return;
         }
 
-        loading.textContent = 'CocaPepsi CF: Rendering MathJax...';
+        loading.textContent = 'CocaPepsi CP: Rendering MathJax...';
 
         // Give MathJax an extra 2 seconds to finish rendering after content is in the DOM
         setTimeout(() => {
@@ -684,6 +691,113 @@
   }
 
   // ==========================================
+  // 10. Zen Standings (Hide Everyone Except You)
+  // ==========================================
+
+  function initZenStandings() {
+    const standingsTable = document.querySelector('table.standings');
+    if (!standingsTable) return;
+
+    // Inject CSS: row-hiding rule + premium button styles
+    const style = document.createElement('style');
+    style.textContent = `
+      .coca-pepsi-zen table.standings tr[participantid]:not(.highlighted-row):not(.current) {
+        display: none !important;
+      }
+      .coca-pepsi-zen-btn {
+        display: inline-block;
+        margin-bottom: 8px;
+        padding: 6px 14px;
+        font-size: 13px;
+        font-weight: bold;
+        font-family: inherit;
+        cursor: pointer;
+        border: 1px solid;
+        border-radius: 8px;
+        transition: all 0.2s ease;
+        outline: none;
+        user-select: none;
+      }
+      .coca-pepsi-zen-btn.zen-on {
+        background: linear-gradient(135deg, #ff6b6b, #ee5a24);
+        color: #fff;
+        border-color: #d63031;
+        box-shadow: 0 2px 8px rgba(238, 90, 36, 0.3);
+      }
+      .coca-pepsi-zen-btn.zen-on:hover {
+        background: linear-gradient(135deg, #ff4757, #c44569);
+        box-shadow: 0 3px 12px rgba(238, 90, 36, 0.45);
+        transform: translateY(-1px);
+      }
+      .coca-pepsi-zen-btn.zen-off {
+        background: linear-gradient(135deg, #636e72, #2d3436);
+        color: #dfe6e9;
+        border-color: #555;
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+      }
+      .coca-pepsi-zen-btn.zen-off:hover {
+        background: linear-gradient(135deg, #74b9ff, #0984e3);
+        color: #fff;
+        border-color: #0984e3;
+        box-shadow: 0 3px 12px rgba(9, 132, 227, 0.4);
+        transform: translateY(-1px);
+      }
+    `;
+    document.head.appendChild(style);
+
+    // State management — default to ON
+    if (localStorage.getItem('coca_pepsi_zen') === null) {
+      localStorage.setItem('coca_pepsi_zen', 'true');
+    }
+    const isOn = localStorage.getItem('coca_pepsi_zen') === 'true';
+    if (isOn) {
+      document.body.classList.add('coca-pepsi-zen');
+    }
+
+    // Create the toggle button
+    const zenBtn = document.createElement('button');
+    zenBtn.className = 'coca-pepsi-zen-btn';
+
+    function updateBtn() {
+      const active = document.body.classList.contains('coca-pepsi-zen');
+      zenBtn.textContent = active ? ZEN_ON_TEXT : ZEN_OFF_TEXT;
+      zenBtn.classList.toggle('zen-on', active);
+      zenBtn.classList.toggle('zen-off', !active);
+    }
+    updateBtn();
+
+    // Insert the button right above the standings table in an aligned container
+    const btnContainer = document.createElement('div');
+    btnContainer.style.display = 'flex';
+    btnContainer.style.marginBottom = '15px';
+    const alignMap = { left: 'flex-start', center: 'center', right: 'flex-end' };
+    btnContainer.style.justifyContent = alignMap[ZEN_ALIGN] || 'flex-end';
+    btnContainer.appendChild(zenBtn);
+    standingsTable.parentNode.insertBefore(btnContainer, standingsTable);
+
+    // Shared toggle logic
+    function toggleZen() {
+      document.body.classList.toggle('coca-pepsi-zen');
+      const nowOn = document.body.classList.contains('coca-pepsi-zen');
+      localStorage.setItem('coca_pepsi_zen', String(nowOn));
+      updateBtn();
+    }
+
+    // Toggle click handler
+    zenBtn.addEventListener('click', toggleZen);
+
+    // Global keyboard shortcut
+    document.addEventListener('keydown', (e) => {
+      // Don't trigger while typing in inputs or textareas
+      if (document.activeElement.tagName === 'INPUT' || document.activeElement.tagName === 'TEXTAREA') return;
+      if (e.key === ZEN_HOTKEY) {
+        e.preventDefault();
+        toggleZen();
+      }
+    });
+  }
+
+  // ==========================================
   // Initialization
   // ==========================================
 
@@ -696,6 +810,7 @@
     executeCleanRoomPrint();
     hideTagsExceptRating();
     showSubmissionRatings();
+    initZenStandings();
 
     // Ctrl + Enter to submit (capture phase, registered once globally)
     document.addEventListener('keydown', (e) => {
@@ -705,7 +820,7 @@
           '.submit-form input[type="submit"], .submitForm input[type="submit"], button.submit'
         );
         if (submitBtn) {
-          console.log('CocaPepsi CF: Triggering submit...');
+          console.log('CocaPepsi CP: Triggering submit...');
           submitBtn.click();
         }
       }

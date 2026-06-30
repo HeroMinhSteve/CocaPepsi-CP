@@ -1,8 +1,20 @@
 {
   "manifest_version": 3,
-  "name": "CocaPepsi CF",
-  "version": "2.2.2",
+  "name": "CocaPepsi CP",
+  "version": "3.0.0",
   "description": "Helper Extension for Competitive Programming",
+  "background": {
+    "service_worker": "background.js"
+  },
+  "commands": {
+    "force-submit": {
+      "suggested_key": {
+        "default": "Ctrl+Shift+S",
+        "mac": "Command+Shift+S"
+      },
+      "description": "Force Submit on QOJ"
+    }
+  },
   "content_scripts": [
     {
       "matches": [
@@ -19,6 +31,42 @@
       ],
       "js": [
         "QOJ.js"
+      ],
+      "run_at": "document_idle"
+    },
+    {
+      "matches": [
+        "*://atcoder.jp/*",
+        "*://*.atcoder.jp/*"
+      ],
+      "js": [
+        "AtCoder.js"
+      ],
+      "run_at": "document_idle"
+    },
+    {
+      "matches": [
+        "*://oj.uz/*",
+        "*://*.oj.uz/*"
+      ],
+      "js": [
+        "OJUZ.js"
+      ],
+      "run_at": "document_idle"
+    },
+    {
+      "matches": [
+        "*://dmoj.ca/*",
+        "*://*.dmoj.ca/*",
+        "*://oj.vnoi.info/*",
+        "*://*.oj.vnoi.info/*",
+        "*://qhhoj.com/*",
+        "*://*.qhhoj.com/*",
+        "*://oj.clue.edu.vn/*",
+        "*://*.oj.clue.edu.vn/*"
+      ],
+      "js": [
+        "DMOJ.js"
       ],
       "run_at": "document_idle"
     }
