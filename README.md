@@ -1,12 +1,13 @@
 # 🥤 CocaPepsi CP
 
-**CocaPepsi CP** is a premium, feature-rich Chrome extension designed to supercharge your competitive programming workflow on **Codeforces**, **QOJ (qoj.ac)**, **AtCoder (atcoder.jp)**, **oj.uz**, and **DMOJ-based OJs** (dmoj.ca, oj.vnoi.info, qhhoj.com). By introducing custom in-page editors, live status tracking, seamless PDF rendering, and keyboard shortcuts, it eliminates unnecessary page loads and clicks, letting you focus entirely on solving problems.
+**CocaPepsi CP** is a premium, feature-rich Chrome extension designed to supercharge your competitive programming workflow on **Codeforces**, **CSES (cses.fi)**, **QOJ (qoj.ac)**, **AtCoder (atcoder.jp)**, **oj.uz**, and **DMOJ-based OJs** (dmoj.ca, oj.vnoi.info, qhhoj.com). By introducing custom in-page editors, live status tracking, seamless PDF rendering, and keyboard shortcuts, it eliminates unnecessary page loads and clicks, letting you focus entirely on solving problems.
 
 ---
 
 ## 🚀 Supported Platforms
 
 - **Codeforces** (`*.codeforces.com` — including standard contests, gym, and group contest subdomains)
+- **CSES** (`cses.fi`)
 - **QOJ** (`qoj.ac`)
 - **AtCoder** (`*.atcoder.jp`)
 - **oj.uz** (`*.oj.uz`)
@@ -74,6 +75,23 @@
 
 ---
 
+### 🏔️ CSES Enhancements
+
+* **💻 Sleek In-Page Code Editor & HUD:**
+  - Converts the default file-upload input into a dark-themed, resizable monospace text area for direct code pasting.
+  - Injects a decoupled floating HUD containing a global language selector and a persistent per-problem timer.
+  - Automatically synchronizes your target language selection from the HUD with CSES's native language dropdown.
+* **⏱️ Persistent Per-Problem Timer:**
+  - Tracks elapsed time using `Date.now()` to prevent drift, with sleek Play/Pause and Reset controls.
+  - Timers are namespaced to the specific problem ID (e.g., `coca_pepsi_timer_running_1068`), ensuring state perfectly survives tab reloads and navigation between task and submit pages.
+* **🚀 Smart Submit Navigation:**
+  - On problem pages, `Alt + S` instantly finds and clicks the "Submit" tab.
+  - On submit pages, automatically detects and switches from "File Upload" view to "Editor" view.
+* **⚡ Instant Submit Payload Generator:**
+  - Hitting `Ctrl + Enter` inside the custom editor generates a virtual file payload (e.g., `.cpp`, `.py`) based on your global language selection, injects it into the native form, and triggers a bulletproof submission.
+
+---
+
 ## ⌨️ Keyboard Shortcuts
 
 | Platform | Shortcut | Action |
@@ -81,6 +99,8 @@
 | **Codeforces** | `Alt + S` | Smoothly scrolls to and focuses on the code submission text area. |
 | **Codeforces** | `Ctrl + Enter` *(or `Cmd + Enter`)* | Instantly submits the form. |
 | **Codeforces** | `\` *(Backslash)* | Toggles Zen Standings mode on the standings page. |
+| **CSES** | `Alt + S` | Navigates from a problem page to the submit page. |
+| **CSES** | `Ctrl + Enter` *(or `Cmd + Enter`)* | Instantly submits the code inside the editor. |
 | **QOJ** | `Alt + S` | Redirects from the problem page to the submission page. |
 | **QOJ** | `Ctrl + Enter` *(or `Cmd + Enter`)* | Instantly submits the code inside the editor. |
 | **AtCoder** | `Alt + S` | Navigates from a task page to the submit page with the task pre-selected. |
@@ -99,6 +119,7 @@ CocaPepsi CP/
 ├── manifest.json      # Extension metadata, MV3 definitions & script routing
 ├── background.js      # Service worker for Chrome Commands API bridge
 ├── Codeforces.js      # All Codeforces feature implementations
+├── cses.js            # CSES custom editor, HUD timer, and instant submit payload generator
 ├── QOJ.js             # QOJ shortcuts and main-world injector logic
 ├── AtCoder.js         # AtCoder task navigation, editor focus & quick submit
 ├── OJUZ.js            # oj.uz task navigation, editor focus & quick submit

@@ -69,6 +69,10 @@
         "DMOJ.js"
       ],
       "run_at": "document_idle"
+    },
+    {
+      "matches": ["*://cses.fi/*"],
+      "js": ["cses.js"]
     }
   ],
   "permissions": [],
