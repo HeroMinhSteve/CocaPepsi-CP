@@ -104,7 +104,7 @@
 | **QOJ** | `Alt + S` | Redirects from the problem page to the submission page. |
 | **QOJ** | `Ctrl + Enter` *(or `Cmd + Enter`)* | Instantly submits the code inside the editor. |
 | **AtCoder** | `Alt + S` | Navigates from a task page to the submit page with the task pre-selected. |
-| **AtCoder** | `Ctrl + Enter` *(or `Cmd + Enter`)* | Instantly submits the code from the Ace editor. |
+| **AtCoder** | ` + Enter` *(or `Cmd + Enter`)* | Instantly submits the code from the Ace editor. |
 | **oj.uz** | `Alt + S` | Navigates from a problem page to the submit page. |
 | **oj.uz** | `Ctrl + Enter` *(or `Cmd + Enter`)* | Instantly submits the code from the Ace editor. |
 | **DMOJ / VNOI / QHHOJ** | `Alt + S` | Opens the submit page in a new tab from a problem page. |

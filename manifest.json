@@ -63,7 +63,9 @@
         "*://qhhoj.com/*",
         "*://*.qhhoj.com/*",
         "*://oj.clue.edu.vn/*",
-        "*://*.oj.clue.edu.vn/*"
+        "*://*.oj.clue.edu.vn/*",
+        "*://hnoj.edu.vn/*",
+        "*://*.hnoj.edu.vn/*"
       ],
       "js": [
         "DMOJ.js"
