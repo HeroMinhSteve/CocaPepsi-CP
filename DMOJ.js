@@ -249,10 +249,10 @@
     // Click handler
     zenBtn.addEventListener('click', toggleZen);
 
-    // Alt + Z hotkey
+    // Alt + Z or \ hotkey
     document.addEventListener('keydown', (e) => {
       if (document.activeElement.tagName === 'INPUT' || document.activeElement.tagName === 'TEXTAREA') return;
-      if (e.altKey && e.key.toLowerCase() === 'z') {
+      if ((e.altKey && e.key.toLowerCase() === 'z') || e.key === '\\') {
         e.preventDefault();
         toggleZen();
       }
@@ -264,8 +264,6 @@
   // ==========================================
 
   function init() {
-    setupZenMode();
-
     const path = window.location.pathname;
 
     // Submit page: /problem/{code}/submit
@@ -274,10 +272,17 @@
     // Problem page: /problem/{code} (but NOT /submit, /submissions, etc.)
     const isProblemPage = /^\/problem\/[^/]+\/?$/.test(path);
 
+    // Ranking pages: */ranking or /users
+    const isRankingPage = /\/ranking\/?/.test(path) || /^\/users\/?/.test(path);
+
     if (isSubmitPage) {
       setupSubmitPage();
     } else if (isProblemPage) {
       setupProblemPage();
+    }
+
+    if (isRankingPage) {
+      setupZenMode();
     }
   }
 
