@@ -75,6 +75,18 @@
 
 ---
 
+### 🍁 DMOJ Enhancements
+
+* **🧘 Zen Mode (Distraction-Free Reading & Ranking):**
+  - Press `Alt + Z` (or click the floating button) to toggle Zen Mode.
+  - When enabled, hides the navbar, sidebar, footer, comments, and user-info blocks without breaking problem tabs.
+  - The main content area expands and centers for a clean, distraction-free reading experience.
+  - Hides all other users on the ranking scoreboard, similar to Codeforces Zen Mode.
+  - State persists across page loads via `localStorage`.
+  - Sleek floating toggle pill in the bottom-left corner with green/gray accent.
+
+---
+
 ### 🏔️ CSES Enhancements
 
 * **💻 Sleek In-Page Code Editor & HUD:**

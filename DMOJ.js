@@ -120,137 +120,134 @@
   });
 
   // ==========================================
-  // 4. Zen Mode (Distraction-Free Reading)
+  // 4. Zen Standings (Hide Everyone Except You)
   // ==========================================
 
   function setupZenMode() {
-    // --- Inject CSS rules ---
+    // Only run if there is a ranking table
+    const standingsTable = document.querySelector('table.table, table.users-table, table.ranking-table, table.standings, .contest-ranking table');
+    if (!standingsTable) return;
+
+    // --- 1. Identify Current User ---
+    let currentUsername = "";
+    const navLinks = document.querySelectorAll('.navbar a[href^="/user/"], header a[href^="/user/"], #nav-container a[href^="/user/"], .nav a[href^="/user/"]');
+    for (const link of navLinks) {
+      const text = link.textContent.trim();
+      if (text && !text.toLowerCase().includes("login") && !text.toLowerCase().includes("register")) {
+        currentUsername = text;
+        break;
+      }
+    }
+
+    // --- 2. Tag Competitor Rows ---
+    function tagRankingRows() {
+      const rows = standingsTable.querySelectorAll('tr');
+      rows.forEach(row => {
+        const rowText = row.textContent || "";
+        const isCurrentUser = currentUsername && rowText.includes(currentUsername);
+        
+        // Competitor rows almost always have a user link
+        const hasUserLink = row.querySelector('a[href^="/user/"]');
+        
+        if (hasUserLink && !isCurrentUser) {
+          row.classList.add('coca-pepsi-zen-other');
+        } else {
+          row.classList.remove('coca-pepsi-zen-other');
+        }
+      });
+    }
+    
+    // Tag rows immediately and also on a slight delay for dynamic scoreboards
+    tagRankingRows();
+    setTimeout(tagRankingRows, 1500);
+
+    // --- 3. Inject CSS ---
     const style = document.createElement('style');
     style.textContent = `
-      /* Hide distractions */
-      body.coca-pepsi-zen #nav-container,
-      body.coca-pepsi-zen .navbar,
-      body.coca-pepsi-zen #header,
-      body.coca-pepsi-zen .sidebar,
-      body.coca-pepsi-zen .problem-sidebar,
-      body.coca-pepsi-zen .col-md-3,
-      body.coca-pepsi-zen .col-lg-3,
-      body.coca-pepsi-zen .comments-container,
-      body.coca-pepsi-zen .comments,
-      body.coca-pepsi-zen #footer,
-      body.coca-pepsi-zen .footer,
-      body.coca-pepsi-zen .user-info,
-      body.coca-pepsi-zen .blog-sidebar,
-      body.coca-pepsi-zen .right-sidebar,
-      body.coca-pepsi-zen #navigation {
+      .coca-pepsi-zen table tr.coca-pepsi-zen-other {
         display: none !important;
       }
-      /* Expand and center the main content */
-      body.coca-pepsi-zen .col-md-9,
-      body.coca-pepsi-zen .col-lg-9,
-      body.coca-pepsi-zen .content-with-sidebar,
-      body.coca-pepsi-zen #page-content,
-      body.coca-pepsi-zen .wrapper,
-      body.coca-pepsi-zen #content {
-        width: 100% !important;
-        max-width: 900px !important;
-        margin: 0 auto !important;
-        float: none !important;
-        border: none !important;
-        box-shadow: none !important;
-      }
-      /* In-page toggle button styling */
-      #coca-pepsi-zen-btn {
-        padding: 6px 12px;
-        margin-left: 10px;
+      .coca-pepsi-zen-btn {
+        display: inline-block;
+        margin-bottom: 12px;
+        padding: 6px 14px;
+        font-size: 13px;
         font-weight: bold;
-        border-radius: 4px;
+        font-family: inherit;
         cursor: pointer;
-        transition: 0.2s;
-        border: none;
-        color: #fff;
+        border: 1px solid;
+        border-radius: 8px;
+        transition: all 0.2s ease;
         outline: none;
+        user-select: none;
       }
-      #coca-pepsi-zen-btn.zen-on {
-        background-color: #27ae60;
+      .coca-pepsi-zen-btn.zen-on {
+        background: linear-gradient(135deg, #ff6b6b, #ee5a24);
+        color: #fff;
+        border-color: #d63031;
+        box-shadow: 0 2px 8px rgba(238, 90, 36, 0.3);
       }
-      #coca-pepsi-zen-btn.zen-off {
-        background-color: #555;
+      .coca-pepsi-zen-btn.zen-on:hover {
+        background: linear-gradient(135deg, #ff4757, #c44569);
+        box-shadow: 0 3px 12px rgba(238, 90, 36, 0.45);
+        transform: translateY(-1px);
       }
-      #coca-pepsi-zen-btn:hover {
-        opacity: 0.9;
+      .coca-pepsi-zen-btn.zen-off {
+        background: linear-gradient(135deg, #636e72, #2d3436);
+        color: #dfe6e9;
+        border-color: #555;
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+      }
+      .coca-pepsi-zen-btn.zen-off:hover {
+        background: linear-gradient(135deg, #74b9ff, #0984e3);
+        color: #fff;
+        border-color: #0984e3;
+        box-shadow: 0 3px 12px rgba(9, 132, 227, 0.4);
+        transform: translateY(-1px);
       }
     `;
     document.head.appendChild(style);
 
-    // --- State management (default OFF) ---
+    // --- 4. State management (default ON) ---
+    if (localStorage.getItem('coca_pepsi_dmoj_zen') === null) {
+      localStorage.setItem('coca_pepsi_dmoj_zen', 'true');
+    }
     const isOn = localStorage.getItem('coca_pepsi_dmoj_zen') === 'true';
     if (isOn) {
       document.body.classList.add('coca-pepsi-zen');
     }
 
-    // --- Create in-page toggle button ---
-    const btn = document.createElement('button');
-    btn.id = 'coca-pepsi-zen-btn';
-    btn.textContent = '🧘 Zen Mode';
+    // --- 5. Create Button ---
+    const zenBtn = document.createElement('button');
+    zenBtn.className = 'coca-pepsi-zen-btn';
 
     function updateBtn() {
       const active = document.body.classList.contains('coca-pepsi-zen');
-      btn.className = active ? 'zen-on' : 'zen-off';
-      btn.id = 'coca-pepsi-zen-btn';
+      zenBtn.textContent = active ? "❤️ Only You" : "🌍 Reveal Standings";
+      zenBtn.classList.toggle('zen-on', active);
+      zenBtn.classList.toggle('zen-off', !active);
     }
     updateBtn();
 
-    // --- Shared toggle logic ---
+    // Insert the button right above the standings table
+    const btnContainer = document.createElement('div');
+    btnContainer.style.display = 'flex';
+    btnContainer.style.marginBottom = '15px';
+    btnContainer.style.justifyContent = 'center'; // Center alignment
+    btnContainer.appendChild(zenBtn);
+    standingsTable.parentNode.insertBefore(btnContainer, standingsTable);
+
+    // --- 6. Shared Toggle Logic ---
     function toggleZen() {
       document.body.classList.toggle('coca-pepsi-zen');
       const nowOn = document.body.classList.contains('coca-pepsi-zen');
       localStorage.setItem('coca_pepsi_dmoj_zen', String(nowOn));
       updateBtn();
+      tagRankingRows(); // Re-tag in case of dynamic updates
     }
 
     // Click handler
-    btn.addEventListener('click', toggleZen);
-
-    // --- Inject button into the DOM ---
-    const injectionTargets = [
-      '.nav-tabs',
-      '.nav-pills',
-      '.problem-info',
-      '.page-header h2',
-      '.info-float'
-    ];
-
-    let injected = false;
-    for (const selector of injectionTargets) {
-      const target = document.querySelector(selector);
-      if (target) {
-        if (target.tagName.toLowerCase() === 'ul' || target.classList.contains('nav-tabs') || target.classList.contains('nav-pills')) {
-          const li = document.createElement('li');
-          li.style.display = 'inline-block';
-          li.style.marginTop = '4px';
-          li.appendChild(btn);
-          target.appendChild(li);
-        } else {
-          target.appendChild(btn);
-        }
-        injected = true;
-        break;
-      }
-    }
-
-    if (!injected) {
-      // Ultimate fallback: just append to the body or main content wrapper
-      const fallbackTarget = document.querySelector('#page-content') || document.querySelector('.wrapper') || document.body;
-      if (fallbackTarget) {
-        // If we really can't find a place, float it, but this should be rare
-        btn.style.position = 'fixed';
-        btn.style.bottom = '16px';
-        btn.style.left = '16px';
-        btn.style.zIndex = '9999';
-        fallbackTarget.appendChild(btn);
-      }
-    }
+    zenBtn.addEventListener('click', toggleZen);
 
     // Alt + Z hotkey
     document.addEventListener('keydown', (e) => {
