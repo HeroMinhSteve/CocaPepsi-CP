@@ -704,6 +704,10 @@
       .coca-pepsi-zen table.standings tr[participantid]:not(.highlighted-row):not(.current) {
         display: none !important;
       }
+      .coca-pepsi-zen table.standings th:nth-child(1),
+      .coca-pepsi-zen table.standings td:nth-child(1) {
+        display: none !important;
+      }
       .coca-pepsi-zen-btn {
         display: inline-block;
         margin-bottom: 8px;

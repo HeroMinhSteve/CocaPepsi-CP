@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "CocaPepsi CP",
-  "version": "3.0.3",
+  "version": "3.0.4",
   "description": "Helper Extension for Competitive Programming",
   "background": {
     "service_worker": "background.js"

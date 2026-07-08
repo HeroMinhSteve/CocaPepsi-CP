@@ -161,6 +161,21 @@
     tagRankingRows();
     setTimeout(tagRankingRows, 1500);
 
+    // --- 2.5 Watch for Dynamic Updates (DMOJ AJAX reloads every ~30s) ---
+    const observer = new MutationObserver((mutations) => {
+      for (const m of mutations) {
+        if (m.addedNodes.length > 0 || m.type === 'characterData') {
+          tagRankingRows();
+          break;
+        }
+      }
+    });
+    observer.observe(standingsTable, {
+      childList: true,
+      subtree: true,
+      characterData: true
+    });
+
     // --- 3. Inject CSS ---
     const style = document.createElement('style');
     style.textContent = `
