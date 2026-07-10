@@ -14,6 +14,7 @@
 - **DMOJ** (`dmoj.ca`)
 - **VNOI** (`oj.vnoi.info`)
 - **QHHOJ** (`qhhoj.com`)
+- **USACO** (`usaco.org`)
 
 ---
 
@@ -47,6 +48,7 @@
   - Caches ratings in `localStorage` for 24 hours to minimize API hits.
 * **🧘 Zen Standings Mode:**
   - Hides everyone else in the contest standings except for you, helping you maintain focus.
+  - Hides the Rank (`#`) column when active to eliminate ranking anxiety.
   - Premium styled toggle button appears above the standings table.
   - Fully customizable text, alignment, and hotkey inside the script.
 
@@ -82,6 +84,7 @@
   - When enabled, hides the navbar, sidebar, footer, comments, and user-info blocks without breaking problem tabs.
   - The main content area expands and centers for a clean, distraction-free reading experience.
   - Hides all other users on the ranking scoreboard, similar to Codeforces Zen Mode.
+  - Intelligent `MutationObserver` automatically catches dynamic ranking score updates (the ~30s auto-refresh) and re-tags/re-hides competitor rows seamlessly.
   - State persists across page loads via `localStorage`.
   - Sleek floating toggle pill in the bottom-left corner with green/gray accent.
 
@@ -93,6 +96,7 @@
   - Converts the default file-upload input into a dark-themed, resizable monospace text area for direct code pasting.
   - Injects a decoupled floating HUD containing a global language selector and a persistent per-problem timer.
   - Automatically synchronizes your target language selection from the HUD with CSES's native language dropdown.
+  - HUD and editor are permanently locked to Dark Mode for consistent aesthetic contrast.
 * **⏱️ Persistent Per-Problem Timer:**
   - Tracks elapsed time using `Date.now()` to prevent drift, with sleek Play/Pause and Reset controls.
   - Timers are namespaced to the specific problem ID (e.g., `coca_pepsi_timer_running_1068`), ensuring state perfectly survives tab reloads and navigation between task and submit pages.
@@ -101,6 +105,20 @@
   - On submit pages, automatically detects and switches from "File Upload" view to "Editor" view.
 * **⚡ Instant Submit Payload Generator:**
   - Hitting `Ctrl + Enter` inside the custom editor generates a virtual file payload (e.g., `.cpp`, `.py`) based on your global language selection, injects it into the native form, and triggers a bulletproof submission.
+
+---
+
+### 🇺🇸 USACO Enhancements
+
+* **💻 Decoupled HUD & Editor in Light Theme:**
+  - Converts the legacy file-upload input into a custom code editor textarea.
+  - Permanently styled with a clean Light Theme (white background, dark text, light-gray borders) to seamlessly match the native USACO layout.
+  - HUD includes a persistent per-problem timer (namespaced to the USACO problem ID) and a global language selector.
+* **🎯 C++17 Priority Targeting:**
+  - When "C++" is selected in the HUD, the synchronization engine automatically scans the native dropdown and selects C++17. If C++17 is not found, it falls back to a generic C++ version (preventing accidental default C++11 selects).
+* **⚡ Safe Submission & Ctrl + Enter:**
+  - Hitting `Ctrl + Enter` inside the custom editor builds the virtual file payload (e.g., `.cpp`, `.py`, `.java`), syncs the native dropdown, and clicks the native submit button.
+  - Submits using direct physical button click logic to preserve USACO's CSRF session tokens and prevent dropouts.
 
 ---
 
@@ -118,10 +136,11 @@
 | **AtCoder** | `Alt + S` | Navigates from a task page to the submit page with the task pre-selected. |
 | **AtCoder** | `Ctrl + Enter` *(or `Cmd + Enter`)* | Instantly submits the code from the Ace editor. |
 | **oj.uz** | `Alt + S` | Navigates from a problem page to the submit page. |
-| **oj.uz** | `Ctrl + Enter` *(or `Cmd + Enter`)* | Instantly submits the code from the Ace editor. |
+| **oj.uz** | `Ctrl + Enter` *(or `Cmd + Enter`)* | Instantly submits code via physical `.click()` with event propagation stopped (preventing accidental logouts/CSRF dropouts). |
 | **DMOJ / VNOI / QHHOJ** | `Alt + S` | Opens the submit page in a new tab from a problem page. |
 | **DMOJ / VNOI / QHHOJ** | `Alt + Z` or `\` | Toggles Zen Mode (distraction-free reading & rankings). |
 | **DMOJ / VNOI / QHHOJ** | `Ctrl + Enter` *(or `Cmd + Enter`)* | Instantly submits the code from the Ace editor. |
+| **USACO** | `Ctrl + Enter` *(or `Cmd + Enter`)* | Automatically builds the payload, syncs C++17 dropdown, and safely clicks submit. |
 
 ---
 
@@ -135,8 +154,9 @@ CocaPepsi CP/
 ├── cses.js            # CSES custom editor, HUD timer, and instant submit payload generator
 ├── QOJ.js             # QOJ shortcuts and main-world injector logic
 ├── AtCoder.js         # AtCoder task navigation, editor focus & quick submit
-├── OJUZ.js            # oj.uz task navigation, editor focus & quick submit
+├── ojuz.js            # oj.uz task navigation, editor focus & quick submit
 ├── DMOJ.js            # DMOJ/VNOI/QHHOJ navigation, editor focus & quick submit
+├── usaco.js           # USACO light-themed custom editor, HUD timer, and language synchronizer
 ├── LICENSE.txt        # MIT License
 ├── README.md          # Project documentation
 └── icons/             # Custom extension logos (16px, 48px, 128px)

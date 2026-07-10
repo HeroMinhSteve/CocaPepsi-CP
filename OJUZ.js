@@ -79,17 +79,14 @@
     document.addEventListener('keydown', (e) => {
       if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
         e.preventDefault();
+        e.stopPropagation();
+        e.stopImmediatePropagation();
 
+        // Always use native button.click() to preserve CSRF tokens
         const submitBtn = $('button[type="submit"], input[type="submit"]');
         if (submitBtn) {
-          console.log('CocaPepsi CP: Ctrl+Enter submit on oj.uz!');
-
-          // Use native form submission if possible
-          if (submitBtn.form) {
-            submitBtn.form.requestSubmit(submitBtn);
-          } else {
-            submitBtn.click();
-          }
+          console.log('CocaPepsi CP: Ctrl+Enter submit on oj.uz (safe .click())!');
+          submitBtn.click();
         } else {
           console.log('CocaPepsi CP: Submit button not found on oj.uz.');
         }
@@ -104,15 +101,11 @@
   chrome.runtime.onMessage.addListener((message) => {
     if (message.action === 'NUKES_AWAY') {
       console.log('CocaPepsi CP: NUKES_AWAY received on oj.uz! Forcing submit...');
+      // Always use native button.click() to preserve CSRF tokens
       const btn = $('button[type="submit"], input[type="submit"]');
       if (btn) {
-        if (btn.form) {
-          console.log('CocaPepsi CP: Native form submit via requestSubmit().');
-          btn.form.requestSubmit(btn);
-        } else {
-          console.log('CocaPepsi CP: Fallback to btn.click().');
-          btn.click();
-        }
+        console.log('CocaPepsi CP: NUKES_AWAY submit via safe .click().');
+        btn.click();
       } else {
         console.log('CocaPepsi CP: ERROR - submit button not found on oj.uz.');
       }

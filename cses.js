@@ -119,7 +119,7 @@
     btnContainer.style.cssText = "display: flex; gap: 6px; margin-bottom: 12px;";
 
     const btnStyle = `
-      background: #222; color: #bbb; border: 1px solid #444; border-radius: 4px;
+      background: #222; color: #eee; border: 1px solid #666; border-radius: 4px;
       font-size: 11px; padding: 4px 10px; cursor: pointer; font-family: sans-serif;
       transition: background 0.2s, color 0.2s, border-color 0.2s; outline: none;
     `;
@@ -128,8 +128,8 @@
     pauseBtn.style.cssText = btnStyle;
     pauseBtn.innerText = isRunning ? '⏸ Pause' : '▶ Resume';
 
-    pauseBtn.addEventListener('mouseenter', () => { pauseBtn.style.background = '#333'; pauseBtn.style.color = '#eee'; pauseBtn.style.borderColor = '#666'; });
-    pauseBtn.addEventListener('mouseleave', () => { pauseBtn.style.background = '#222'; pauseBtn.style.color = '#bbb'; pauseBtn.style.borderColor = '#444'; });
+    pauseBtn.addEventListener('mouseenter', () => { pauseBtn.style.background = '#333'; pauseBtn.style.color = '#fff'; pauseBtn.style.borderColor = '#888'; });
+    pauseBtn.addEventListener('mouseleave', () => { pauseBtn.style.background = '#222'; pauseBtn.style.color = '#eee'; pauseBtn.style.borderColor = '#666'; });
 
     pauseBtn.addEventListener('click', () => {
       if (isRunning) {
@@ -154,8 +154,8 @@
     resetBtn.style.cssText = btnStyle;
     resetBtn.innerText = '⏹ Reset';
 
-    resetBtn.addEventListener('mouseenter', () => { resetBtn.style.background = '#333'; resetBtn.style.color = '#eee'; resetBtn.style.borderColor = '#666'; });
-    resetBtn.addEventListener('mouseleave', () => { resetBtn.style.background = '#222'; resetBtn.style.color = '#bbb'; resetBtn.style.borderColor = '#444'; });
+    resetBtn.addEventListener('mouseenter', () => { resetBtn.style.background = '#333'; resetBtn.style.color = '#fff'; resetBtn.style.borderColor = '#888'; });
+    resetBtn.addEventListener('mouseleave', () => { resetBtn.style.background = '#222'; resetBtn.style.color = '#eee'; resetBtn.style.borderColor = '#666'; });
 
     resetBtn.addEventListener('click', () => {
       accumulatedTime = 0;
