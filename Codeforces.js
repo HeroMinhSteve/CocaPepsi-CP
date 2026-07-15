@@ -694,11 +694,14 @@
   // 10. Zen Standings (Hide Everyone Except You)
   // ==========================================
 
-  function initZenStandings() {
+  function initZenMode() {
     const standingsTable = document.querySelector('table.standings');
-    if (!standingsTable) return;
+    const problemsTable = document.querySelector('table.problems');
 
-    // Inject CSS: row-hiding rule + premium button styles
+    // Only activate if we're on standings or contest problems page
+    if (!standingsTable && !problemsTable) return;
+
+    // --- Inject CSS: standings row-hiding + rank column hiding + button styles ---
     const style = document.createElement('style');
     style.textContent = `
       .coca-pepsi-zen table.standings tr[participantid]:not(.highlighted-row):not(.current) {
@@ -746,10 +749,21 @@
         box-shadow: 0 3px 12px rgba(9, 132, 227, 0.4);
         transform: translateY(-1px);
       }
+      #coca-pepsi-zen-nav-btn {
+        padding: 4px 12px;
+        font-weight: bold;
+        font-family: arial, sans-serif;
+        font-size: 13px;
+        border-radius: 4px;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        margin-left: 10px;
+        vertical-align: middle;
+      }
     `;
     document.head.appendChild(style);
 
-    // State management — default to ON
+    // --- State management — default to ON ---
     if (localStorage.getItem('coca_pepsi_zen') === null) {
       localStorage.setItem('coca_pepsi_zen', 'true');
     }
@@ -758,37 +772,88 @@
       document.body.classList.add('coca-pepsi-zen');
     }
 
-    // Create the toggle button
-    const zenBtn = document.createElement('button');
-    zenBtn.className = 'coca-pepsi-zen-btn';
-
-    function updateBtn() {
-      const active = document.body.classList.contains('coca-pepsi-zen');
-      zenBtn.textContent = active ? ZEN_ON_TEXT : ZEN_OFF_TEXT;
-      zenBtn.classList.toggle('zen-on', active);
-      zenBtn.classList.toggle('zen-off', !active);
+    // --- JS DOM-Stripping: Hide/Restore solver count column on problems table ---
+    function stripSolverColumn(hide) {
+      if (!problemsTable) return;
+      const rows = problemsTable.querySelectorAll('tr');
+      rows.forEach(row => {
+        if (row.children.length > 0) {
+          const lastCell = row.children[row.children.length - 1];
+          lastCell.style.display = hide ? 'none' : '';
+        }
+      });
+      // Bulletproof fallback: hide participant links and icons
+      document.querySelectorAll('table.problems a[title*="Participants"], table.problems a[title*="solved"]').forEach(el => {
+        el.style.display = hide ? 'none' : '';
+      });
     }
-    updateBtn();
 
-    // Insert the button right above the standings table in an aligned container
-    const btnContainer = document.createElement('div');
-    btnContainer.style.display = 'flex';
-    btnContainer.style.marginBottom = '15px';
-    const alignMap = { left: 'flex-start', center: 'center', right: 'flex-end' };
-    btnContainer.style.justifyContent = alignMap[ZEN_ALIGN] || 'flex-end';
-    btnContainer.appendChild(zenBtn);
-    standingsTable.parentNode.insertBefore(btnContainer, standingsTable);
+    // Apply immediately based on saved state
+    if (isOn) stripSolverColumn(true);
 
-    // Shared toggle logic
+    // --- Create standings table button (if on standings page) ---
+    let zenBtn = null;
+    if (standingsTable) {
+      zenBtn = document.createElement('button');
+      zenBtn.className = 'coca-pepsi-zen-btn';
+
+      const btnContainer = document.createElement('div');
+      btnContainer.style.display = 'flex';
+      btnContainer.style.marginBottom = '15px';
+      const alignMap = { left: 'flex-start', center: 'center', right: 'flex-end' };
+      btnContainer.style.justifyContent = alignMap[ZEN_ALIGN] || 'flex-end';
+      btnContainer.appendChild(zenBtn);
+      standingsTable.parentNode.insertBefore(btnContainer, standingsTable);
+    }
+
+    // --- Create nav menu button (injected into secondary menu) ---
+    let navBtn = null;
+    const secondMenu = document.querySelector('ul.second-level-menu-list');
+    if (secondMenu) {
+      const li = document.createElement('li');
+      navBtn = document.createElement('button');
+      navBtn.id = 'coca-pepsi-zen-nav-btn';
+      li.appendChild(navBtn);
+      secondMenu.appendChild(li);
+    }
+
+    // --- Sync all button states ---
+    function updateButtons() {
+      const active = document.body.classList.contains('coca-pepsi-zen');
+      if (zenBtn) {
+        zenBtn.textContent = active ? ZEN_ON_TEXT : ZEN_OFF_TEXT;
+        zenBtn.classList.toggle('zen-on', active);
+        zenBtn.classList.toggle('zen-off', !active);
+      }
+      if (navBtn) {
+        navBtn.textContent = active ? 'Zen: ON' : 'Zen: OFF';
+        if (active) {
+          navBtn.style.background = 'linear-gradient(to bottom, #e8f5e9, #c8e6c9)';
+          navBtn.style.border = '1px solid #81c784';
+          navBtn.style.color = '#2e7d32';
+          navBtn.style.boxShadow = 'inset 0 1px 2px rgba(0,0,0,0.1)';
+        } else {
+          navBtn.style.background = 'linear-gradient(to bottom, #ffffff, #f0f0f0)';
+          navBtn.style.border = '1px solid #cccccc';
+          navBtn.style.color = '#777777';
+          navBtn.style.boxShadow = '0 1px 2px rgba(0,0,0,0.1)';
+        }
+      }
+    }
+    updateButtons();
+
+    // --- Shared toggle logic ---
     function toggleZen() {
       document.body.classList.toggle('coca-pepsi-zen');
       const nowOn = document.body.classList.contains('coca-pepsi-zen');
       localStorage.setItem('coca_pepsi_zen', String(nowOn));
-      updateBtn();
+      stripSolverColumn(nowOn);
+      updateButtons();
     }
 
-    // Toggle click handler
-    zenBtn.addEventListener('click', toggleZen);
+    // Click handlers
+    if (zenBtn) zenBtn.addEventListener('click', toggleZen);
+    if (navBtn) navBtn.addEventListener('click', toggleZen);
 
     // Global keyboard shortcut
     document.addEventListener('keydown', (e) => {
@@ -814,7 +879,7 @@
     executeCleanRoomPrint();
     hideTagsExceptRating();
     showSubmissionRatings();
-    initZenStandings();
+    initZenMode();
 
     // Ctrl + Enter to submit (capture phase, registered once globally)
     document.addEventListener('keydown', (e) => {

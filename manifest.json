@@ -27,7 +27,9 @@
     },
     {
       "matches": [
-        "*://qoj.ac/*"
+        "*://qoj.ac/*",
+        "*://loj.ac/*",
+        "*://*.loj.ac/*"
       ],
       "js": [
         "QOJ.js"
