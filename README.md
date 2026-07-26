@@ -1,6 +1,6 @@
 # 🥤 CocaPepsi CP
 
-**CocaPepsi CP** is a premium, feature-rich Chrome extension designed to supercharge your competitive programming workflow on **Codeforces**, **CSES (cses.fi)**, **QOJ (qoj.ac)**, **AtCoder (atcoder.jp)**, **oj.uz**, and **DMOJ-based OJs** (dmoj.ca, oj.vnoi.info, qhhoj.com). By introducing custom in-page editors, live status tracking, seamless PDF rendering, and keyboard shortcuts, it eliminates unnecessary page loads and clicks, letting you focus entirely on solving problems.
+**CocaPepsi CP** is a premium, feature-rich Chrome extension designed to supercharge your competitive programming workflow on **Codeforces**, **CSES (cses.fi)**, **UOJ-based (qoj.ac, loj.ac)**, **AtCoder (atcoder.jp)**, **oj.uz**, **DMOJ-based OJs** (dmoj.ca, oj.vnoi.info, qhhoj.com), **USACO**, and **Luogu**. By introducing custom in-page editors, live status tracking, seamless PDF rendering, and keyboard shortcuts, it eliminates unnecessary page loads and clicks, letting you focus entirely on solving problems.
 
 ---
 
@@ -9,12 +9,14 @@
 - **Codeforces** (`*.codeforces.com` — including standard contests, gym, and group contest subdomains)
 - **CSES** (`cses.fi`)
 - **QOJ** (`qoj.ac`)
+- **LOJ** (`loj.ac`)
 - **AtCoder** (`*.atcoder.jp`)
 - **oj.uz** (`*.oj.uz`)
 - **DMOJ** (`dmoj.ca`)
 - **VNOI** (`oj.vnoi.info`)
 - **QHHOJ** (`qhhoj.com`)
 - **USACO** (`usaco.org`)
+- **Luogu** (`luogu.com.cn`)
 
 ---
 
@@ -54,14 +56,15 @@
 
 ---
 
-### 🏛️ QOJ Enhancements
+### 🏛️ UOJ-Based Enhancements (QOJ, LOJ)
 
-* **⚡ Sandbox-Bypassing Shortcuts:**
-  - Injects a Main World script to bypass Chrome's extension sandbox, capturing inputs before QOJ's advanced code editors (like Ace / CodeMirror) can swallow the `Ctrl + Enter` keydown events.
-* **🎯 Automatic Focus:**
-  - Instantly focuses the main cursor on the code editor textarea upon navigating to the submission page, saving precious seconds.
-* **🔗 Direct Submission Navigation:**
-  - Detects the problem page layout and automatically routes to the submission page via keyboard.
+* **💻 File-Spoofing Architecture:**
+  - Automatically hides the native file upload input and injects the premium Dark Mode Code Editor.
+  - Converts your typed code into a virtual file payload (`.cpp`, `.py`, etc.) and silently overwrites the native `DataTransfer` object.
+* **🛡️ Anti-Logout Safe Submit:**
+  - `Ctrl + Enter` inside the custom editor stops event propagation (preventing the host site from swallowing the event) and triggers a physical button `.click()` to safely preserve CSRF session tokens.
+* **🎯 Smart Submit Navigation:**
+  - `Alt + S` instantly finds the submit tab and redirects you.
 
 ---
 
@@ -122,6 +125,22 @@
 
 ---
 
+### 洛谷 Luogu Enhancements
+
+* **⚡ SPA-Aware Architecture:**
+  - Flawlessly integrates with Luogu's Vue.js Single Page Application routing, automatically re-initializing the HUD without requiring page reloads.
+* **💻 Decoupled HUD & Timer:**
+  - Persistent, per-problem timer that automatically pauses when you switch tabs or lose focus, and resumes when you return.
+* **📡 Live Submission State Fetcher & Auto-Stop:**
+  - Automatically polls the Luogu API every 8 seconds for the latest submission status on the current problem.
+  - Renders a live status badge (e.g., `⏳ [ Pending ]`, `❌ [ WA ]`).
+  - **Auto-Stop on AC:** When an `Accepted` (Status 12) is detected, the timer freezes permanently, turns green, and saves your official solve time.
+* **🚀 Safe Submission:**
+  - `Alt + S` seamlessly scrolls to and clicks the Vue-rendered Submit button.
+  - `Ctrl + Enter` safely triggers the physical submission button, respecting Luogu's native DOM structure.
+
+---
+
 ## ⌨️ Keyboard Shortcuts
 
 | Platform | Shortcut | Action |
@@ -131,8 +150,8 @@
 | **Codeforces** | `\` *(Backslash)* | Toggles Zen Standings mode on the standings page. |
 | **CSES** | `Alt + S` | Navigates from a problem page to the submit page. |
 | **CSES** | `Ctrl + Enter` *(or `Cmd + Enter`)* | Instantly submits the code inside the editor. |
-| **QOJ** | `Alt + S` | Redirects from the problem page to the submission page. |
-| **QOJ** | `Ctrl + Enter` *(or `Cmd + Enter`)* | Instantly submits the code inside the editor. |
+| **QOJ / LOJ** | `Alt + S` | Redirects from the problem page to the submission page. |
+| **QOJ / LOJ** | `Ctrl + Enter` *(or `Cmd + Enter`)* | Instantly submits the code using the file-spoofing exploit and safe button click. |
 | **AtCoder** | `Alt + S` | Navigates from a task page to the submit page with the task pre-selected. |
 | **AtCoder** | `Ctrl + Enter` *(or `Cmd + Enter`)* | Instantly submits the code from the Ace editor. |
 | **oj.uz** | `Alt + S` | Navigates from a problem page to the submit page. |
@@ -141,6 +160,8 @@
 | **DMOJ / VNOI / QHHOJ** | `Alt + Z` or `\` | Toggles Zen Mode (distraction-free reading & rankings). |
 | **DMOJ / VNOI / QHHOJ** | `Ctrl + Enter` *(or `Cmd + Enter`)* | Instantly submits the code from the Ace editor. |
 | **USACO** | `Ctrl + Enter` *(or `Cmd + Enter`)* | Automatically builds the payload, syncs C++17 dropdown, and safely clicks submit. |
+| **Luogu** | `Alt + S` | Smoothly scrolls to the submit button and clicks it, or navigates to the submit anchor. |
+| **Luogu** | `Ctrl + Enter` *(or `Cmd + Enter`)* | Safely submits the code from the editor area. |
 
 ---
 
@@ -152,11 +173,12 @@ CocaPepsi CP/
 ├── background.js      # Service worker for Chrome Commands API bridge
 ├── Codeforces.js      # All Codeforces feature implementations
 ├── cses.js            # CSES custom editor, HUD timer, and instant submit payload generator
-├── QOJ.js             # QOJ shortcuts and main-world injector logic
+├── QOJ.js             # UOJ-based (QOJ/LOJ) file spoofing and safe submit logic
 ├── AtCoder.js         # AtCoder task navigation, editor focus & quick submit
 ├── ojuz.js            # oj.uz task navigation, editor focus & quick submit
 ├── DMOJ.js            # DMOJ/VNOI/QHHOJ navigation, editor focus & quick submit
 ├── usaco.js           # USACO light-themed custom editor, HUD timer, and language synchronizer
+├── luogu.js           # Luogu SPA-aware HUD, live status fetcher, and focus-aware timer
 ├── LICENSE.txt        # MIT License
 ├── README.md          # Project documentation
 └── icons/             # Custom extension logos (16px, 48px, 128px)
