@@ -203,6 +203,52 @@
     langWrapper.appendChild(customSelect);
     hud.appendChild(langWrapper);
     document.body.appendChild(hud);
+
+    // --- Drag-and-Drop Mobility ---
+    const savedX = localStorage.getItem('coca_pepsi_hud_x');
+    const savedY = localStorage.getItem('coca_pepsi_hud_y');
+    if (savedX !== null && savedY !== null) {
+      hud.style.left = savedX + 'px';
+      hud.style.top = savedY + 'px';
+      hud.style.right = 'auto';
+      hud.style.bottom = 'auto';
+    }
+    hud.style.cursor = 'grab';
+
+    let isDragging = false;
+    let offsetX = 0;
+    let offsetY = 0;
+
+    hud.addEventListener('mousedown', (e) => {
+      if (['BUTTON', 'SELECT', 'OPTION', 'INPUT'].includes(e.target.tagName)) return;
+      isDragging = true;
+      offsetX = e.clientX - hud.getBoundingClientRect().left;
+      offsetY = e.clientY - hud.getBoundingClientRect().top;
+      hud.style.cursor = 'grabbing';
+      e.preventDefault();
+    });
+
+    document.addEventListener('mousemove', (e) => {
+      if (!isDragging) return;
+      const hudWidth = hud.offsetWidth;
+      const hudHeight = hud.offsetHeight;
+      let newX = e.clientX - offsetX;
+      let newY = e.clientY - offsetY;
+      newX = Math.max(0, Math.min(newX, window.innerWidth - hudWidth));
+      newY = Math.max(0, Math.min(newY, window.innerHeight - hudHeight));
+      hud.style.left = newX + 'px';
+      hud.style.top = newY + 'px';
+      hud.style.right = 'auto';
+      hud.style.bottom = 'auto';
+    });
+
+    document.addEventListener('mouseup', () => {
+      if (!isDragging) return;
+      isDragging = false;
+      hud.style.cursor = 'grab';
+      localStorage.setItem('coca_pepsi_hud_x', parseInt(hud.style.left, 10));
+      localStorage.setItem('coca_pepsi_hud_y', parseInt(hud.style.top, 10));
+    });
   }
 
   initHUD();

@@ -23,12 +23,11 @@
   let timerInterval = null;
   let statusInterval = null;
 
-  // Shared timer state (accessible by focus handlers)
+  // Shared timer state
   let _timer = {
     isRunning: false,
     accumulatedTime: 0,
     startTime: 0,
-    wasRunningBeforeBlur: false,
     LS_RUNNING: '',
     LS_ACCUMULATED: '',
     LS_START: '',
@@ -37,16 +36,6 @@
     statusBadge: null,
     acFrozen: false,
   };
-
-  function syncTimerToStorage() {
-    if (_timer.isRunning) {
-      const now = Date.now();
-      _timer.accumulatedTime += now - _timer.startTime;
-      _timer.startTime = now;
-      localStorage.setItem(_timer.LS_ACCUMULATED, String(_timer.accumulatedTime));
-      localStorage.setItem(_timer.LS_START, String(_timer.startTime));
-    }
-  }
 
   function pauseTimer() {
     if (!_timer.isRunning) return;
@@ -85,41 +74,13 @@
   }
 
   // ==========================================
-  // 3. Focus & Visibility Awareness
+  // 3. Immediate UI Sync on Tab Focus
   // ==========================================
 
   document.addEventListener('visibilitychange', () => {
-    if (!currentProblemId) return;
-    if (document.hidden) {
-      // Tab hidden: save state, pause tracking
-      _timer.wasRunningBeforeBlur = _timer.isRunning;
-      if (_timer.isRunning) syncTimerToStorage();
-    } else {
-      // Tab visible again: resume if it was running
-      if (_timer.wasRunningBeforeBlur && !_timer.acFrozen) {
-        _timer.startTime = Date.now();
-        _timer.isRunning = true;
-        localStorage.setItem(_timer.LS_RUNNING, 'true');
-        localStorage.setItem(_timer.LS_START, String(_timer.startTime));
-        if (_timer.pauseBtn) _timer.pauseBtn.innerText = '⏸ Pause';
-      }
-    }
-  });
-
-  window.addEventListener('blur', () => {
-    if (!currentProblemId) return;
-    _timer.wasRunningBeforeBlur = _timer.isRunning;
-    if (_timer.isRunning) syncTimerToStorage();
-  });
-
-  window.addEventListener('focus', () => {
-    if (!currentProblemId) return;
-    if (_timer.wasRunningBeforeBlur && !_timer.acFrozen) {
-      _timer.startTime = Date.now();
-      _timer.isRunning = true;
-      localStorage.setItem(_timer.LS_RUNNING, 'true');
-      localStorage.setItem(_timer.LS_START, String(_timer.startTime));
-      if (_timer.pauseBtn) _timer.pauseBtn.innerText = '⏸ Pause';
+    if (!document.hidden && currentProblemId) {
+      // Tab became visible — force immediate UI re-render
+      updateDisplay();
     }
   });
 
@@ -353,6 +314,52 @@
 
     document.body.appendChild(hud);
     currentHud = hud;
+
+    // --- Drag-and-Drop Mobility ---
+    const savedX = localStorage.getItem('coca_pepsi_hud_x');
+    const savedY = localStorage.getItem('coca_pepsi_hud_y');
+    if (savedX !== null && savedY !== null) {
+      hud.style.left = savedX + 'px';
+      hud.style.top = savedY + 'px';
+      hud.style.right = 'auto';
+      hud.style.bottom = 'auto';
+    }
+    hud.style.cursor = 'grab';
+
+    let isDragging = false;
+    let offsetX = 0;
+    let offsetY = 0;
+
+    hud.addEventListener('mousedown', (e) => {
+      if (['BUTTON', 'SELECT', 'OPTION', 'INPUT'].includes(e.target.tagName)) return;
+      isDragging = true;
+      offsetX = e.clientX - hud.getBoundingClientRect().left;
+      offsetY = e.clientY - hud.getBoundingClientRect().top;
+      hud.style.cursor = 'grabbing';
+      e.preventDefault();
+    });
+
+    document.addEventListener('mousemove', (e) => {
+      if (!isDragging) return;
+      const hudWidth = hud.offsetWidth;
+      const hudHeight = hud.offsetHeight;
+      let newX = e.clientX - offsetX;
+      let newY = e.clientY - offsetY;
+      newX = Math.max(0, Math.min(newX, window.innerWidth - hudWidth));
+      newY = Math.max(0, Math.min(newY, window.innerHeight - hudHeight));
+      hud.style.left = newX + 'px';
+      hud.style.top = newY + 'px';
+      hud.style.right = 'auto';
+      hud.style.bottom = 'auto';
+    });
+
+    document.addEventListener('mouseup', () => {
+      if (!isDragging) return;
+      isDragging = false;
+      hud.style.cursor = 'grab';
+      localStorage.setItem('coca_pepsi_hud_x', parseInt(hud.style.left, 10));
+      localStorage.setItem('coca_pepsi_hud_y', parseInt(hud.style.top, 10));
+    });
 
     // --- Start Status Polling ---
     checkLuoguStatus(problemId);
