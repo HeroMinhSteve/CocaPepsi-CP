@@ -124,35 +124,20 @@
   // ==========================================
 
   function setupZenMode() {
-    // --- 1. Identify Current User ---
-    let currentUsername = "";
-    const navLinks = document.querySelectorAll('.navbar a[href^="/user/"], header a[href^="/user/"], #nav-container a[href^="/user/"], .nav a[href^="/user/"]');
-    for (const link of navLinks) {
-      const text = link.textContent.trim();
-      if (text && !text.toLowerCase().includes("login") && !text.toLowerCase().includes("register")) {
-        currentUsername = text;
-        break;
-      }
-    }
-
-    // --- 2. Inject CSS (once, idempotently) ---
-    const STYLE_ID = 'coca-pepsi-zen-style';
+    // --- 1. Inject CSS (once, idempotently) ---
+    const styleId = 'coca-pepsi-zen-style';
     function ensureStyleInjected() {
-      if (document.getElementById(STYLE_ID)) return;
+      if (document.getElementById(styleId)) return;
       const style = document.createElement('style');
-      style.id = STYLE_ID;
+      style.id = styleId;
       style.textContent = `
-        .coca-pepsi-zen table tr.coca-pepsi-zen-other {
+        /* Hide page chrome in zen mode */
+        body.coca-pepsi-zen .sidebar,
+        body.coca-pepsi-zen footer,
+        body.coca-pepsi-zen .comments {
           display: none !important;
         }
-        .coca-pepsi-zen .navbar,
-        .coca-pepsi-zen #navigation,
-        .coca-pepsi-zen .sidebar,
-        .coca-pepsi-zen footer,
-        .coca-pepsi-zen .comments,
-        .coca-pepsi-zen .user-info {
-          display: none !important;
-        }
+        /* Zen toggle button */
         #coca-pepsi-zen-btn-container {
           display: flex;
           margin-bottom: 15px;
@@ -199,25 +184,40 @@
       document.head.appendChild(style);
     }
 
-    // --- 3. Tag Competitor Rows ---
-    function tagRankingRows() {
-      const standingsTable = document.querySelector('table.table, table.users-table, table.ranking-table, table.standings, .contest-ranking table');
-      if (!standingsTable) return;
-      const rows = standingsTable.querySelectorAll('tr');
-      rows.forEach(row => {
-        const rowText = row.textContent || "";
-        const isCurrentUser = currentUsername && rowText.includes(currentUsername);
-        const hasUserLink = row.querySelector('a[href^="/user/"]');
-        if (hasUserLink && !isCurrentUser) {
-          row.classList.add('coca-pepsi-zen-other');
-        } else {
-          row.classList.remove('coca-pepsi-zen-other');
+    // --- 2. The Enforcer: Asynchronous Row Filtering ---
+    function enforceZenStandings() {
+      const tableRows = document.querySelectorAll('table.standings tbody tr, .table tbody tr');
+
+      // If the table hasn't loaded yet, return early — the interval will retry
+      if (tableRows.length === 0) return;
+
+      const rawInput = localStorage.getItem('coca_pepsi_zen_whitelist') || '';
+      const visibleUsers = rawInput.split(',').map(name => name.trim()).filter(name => name.length > 0);
+
+      for (const currentRow of tableRows) {
+        const rowText = currentRow.textContent;
+        const isStatsRow = rowText.includes('Total AC') || currentRow.classList.contains('statistics') || currentRow.classList.contains('standings-statistics') || currentRow.closest('tfoot');
+
+        if (isStatsRow) {
+          const showStats = localStorage.getItem('coca_pepsi_show_stats') === 'true';
+          currentRow.style.display = showStats ? '' : 'none';
+          continue;
         }
-      });
+        const shouldShow = visibleUsers.some(targetUser => rowText.toLowerCase().includes(targetUser.toLowerCase())) || currentRow.classList.contains('info');
+        currentRow.style.display = shouldShow ? '' : 'none';
+      }
     }
 
-    // --- 4. Central State Applier (the heart of auto-healing) ---
-    const BTN_CONTAINER_ID = 'coca-pepsi-zen-btn-container';
+    // --- 3. Restore all rows to visible ---
+    function restoreAllRows() {
+      const tableRows = document.querySelectorAll('table.standings tbody tr, .table tbody tr');
+      for (const currentRow of tableRows) {
+        currentRow.style.display = '';
+      }
+    }
+
+    // --- 4. Zen State Manager (with polling interval) ---
+    const btnContainerId = 'coca-pepsi-zen-btn-container';
 
     function applyZenState(isZen) {
       // a) Sync body class
@@ -230,46 +230,126 @@
       // b) Ensure CSS is still injected
       ensureStyleInjected();
 
-      // c) Re-tag ranking rows
-      tagRankingRows();
+      if (isZen) {
+        // c) Run the enforcer immediately
+        enforceZenStandings();
 
-      // d) Check if our button still exists — re-inject if destroyed
-      let btnContainer = document.getElementById(BTN_CONTAINER_ID);
+        // d) Start persistent polling to catch async-loaded table data
+        if (!window.zenInterval) {
+          window.zenInterval = setInterval(enforceZenStandings, 500);
+        }
+      } else {
+        // e) Restore all rows and kill the polling interval
+        restoreAllRows();
+        if (window.zenInterval) {
+          clearInterval(window.zenInterval);
+          window.zenInterval = null;
+        }
+      }
+
+      // f) Check if our button still exists — re-inject if destroyed
+      const standingsTable = document.querySelector(
+        'table#users-table, table.users-table, table.ranking-table, ' +
+        'table.standings, .contest-ranking table, table.table.striped, table.table'
+      );
+
+      let controlWrapper = document.getElementById(btnContainerId);
       let zenBtn;
+      let statsToggleBtn;
+      let whitelistInput;
 
-      if (!btnContainer) {
-        const standingsTable = document.querySelector('table.table, table.users-table, table.ranking-table, table.standings, .contest-ranking table');
+      if (!controlWrapper) {
         if (!standingsTable) return;
 
-        btnContainer = document.createElement('div');
-        btnContainer.id = BTN_CONTAINER_ID;
+        controlWrapper = document.createElement('div');
+        controlWrapper.id = btnContainerId;
+        controlWrapper.style.display = 'flex';
+        controlWrapper.style.justifyContent = 'center';
+        controlWrapper.style.alignItems = 'center';
+        controlWrapper.style.gap = '10px';
+        controlWrapper.style.margin = '15px 0';
+        controlWrapper.style.width = '100%';
 
         zenBtn = document.createElement('button');
         zenBtn.className = 'coca-pepsi-zen-btn';
         zenBtn.addEventListener('click', toggleZen);
-        btnContainer.appendChild(zenBtn);
+        
+        statsToggleBtn = document.createElement('button');
+        statsToggleBtn.id = 'coca-pepsi-stats-btn';
+        statsToggleBtn.style.padding = '4px 12px';
+        statsToggleBtn.style.fontWeight = 'bold';
+        statsToggleBtn.style.borderRadius = '4px';
+        statsToggleBtn.style.border = '1px solid #555';
+        statsToggleBtn.style.background = '#333';
+        statsToggleBtn.style.color = '#fff';
+        statsToggleBtn.style.cursor = 'pointer';
+        
+        const initialShowStats = localStorage.getItem('coca_pepsi_show_stats') === 'true';
+        statsToggleBtn.textContent = initialShowStats ? '📊 Stats: ON' : '📊 Stats: OFF';
+        
+        statsToggleBtn.addEventListener('click', () => {
+          const currentStats = localStorage.getItem('coca_pepsi_show_stats') === 'true';
+          localStorage.setItem('coca_pepsi_show_stats', String(!currentStats));
+          statsToggleBtn.textContent = !currentStats ? '📊 Stats: ON' : '📊 Stats: OFF';
+          enforceZenStandings();
+        });
 
-        standingsTable.parentNode.insertBefore(btnContainer, standingsTable);
+        whitelistInput = document.createElement('input');
+        whitelistInput.type = 'text';
+        whitelistInput.id = 'coca-pepsi-whitelist';
+        whitelistInput.placeholder = 'Zen Mode Rivals (comma separated)...';
+        whitelistInput.style.padding = '4px';
+        whitelistInput.style.borderRadius = '4px';
+        whitelistInput.style.border = '1px solid #555';
+        whitelistInput.style.background = '#222';
+        whitelistInput.style.color = '#fff';
+        whitelistInput.style.flexGrow = '1';
+        whitelistInput.style.maxWidth = '300px';
+        whitelistInput.value = localStorage.getItem('coca_pepsi_zen_whitelist') || '';
+        
+        whitelistInput.addEventListener('input', (e) => {
+          localStorage.setItem('coca_pepsi_zen_whitelist', e.target.value);
+          enforceZenStandings();
+        });
+
+        controlWrapper.appendChild(zenBtn);
+        controlWrapper.appendChild(statsToggleBtn);
+        controlWrapper.appendChild(whitelistInput);
+
+        const filterForm = document.querySelector('.form-inline, form#filter, #filter');
+        if (filterForm && filterForm.parentNode) {
+          filterForm.parentNode.insertBefore(controlWrapper, filterForm.nextSibling);
+        } else {
+          standingsTable.parentNode.insertBefore(controlWrapper, standingsTable);
+        }
       } else {
-        zenBtn = btnContainer.querySelector('.coca-pepsi-zen-btn');
+        zenBtn = controlWrapper.querySelector('.coca-pepsi-zen-btn');
+        statsToggleBtn = controlWrapper.querySelector('#coca-pepsi-stats-btn');
+        whitelistInput = controlWrapper.querySelector('#coca-pepsi-whitelist');
       }
 
-      // e) Update button text/styles
+      // g) Update button text/styles
       if (zenBtn) {
         zenBtn.textContent = isZen ? "❤️ Only You" : "🌍 Reveal Standings";
         zenBtn.classList.toggle('zen-on', isZen);
         zenBtn.classList.toggle('zen-off', !isZen);
       }
+      if (whitelistInput) {
+        whitelistInput.style.display = isZen ? 'block' : 'none';
+      }
+      if (statsToggleBtn) {
+        statsToggleBtn.style.display = isZen ? 'block' : 'none';
+      }
     }
 
-    // --- 5. Toggle Logic ---
+    // --- 6. Toggle Logic ---
     function toggleZen() {
       const nowOn = localStorage.getItem('coca_pepsi_dmoj_zen') !== 'true';
       localStorage.setItem('coca_pepsi_dmoj_zen', String(nowOn));
       applyZenState(nowOn);
     }
 
-    // --- 6. State Management (default ON) ---
+    // --- 7. State Management (default ON) ---
     if (localStorage.getItem('coca_pepsi_dmoj_zen') === null) {
       localStorage.setItem('coca_pepsi_dmoj_zen', 'true');
     }
@@ -278,7 +358,7 @@
     const isOn = localStorage.getItem('coca_pepsi_dmoj_zen') === 'true';
     applyZenState(isOn);
 
-    // --- 7. Keybindings (Alt + Z or \) ---
+    // --- 8. Keybindings (Alt + Z or \) ---
     document.addEventListener('keydown', (e) => {
       if (document.activeElement.tagName === 'INPUT' || document.activeElement.tagName === 'TEXTAREA') return;
       if ((e.altKey && e.key.toLowerCase() === 'z') || e.key === '\\') {
@@ -286,56 +366,6 @@
         toggleZen();
       }
     });
-
-    // --- 8. The DOM Sentinel (MutationObserver) ---
-    let sentinelDebounce = null;
-
-    function sentinelCheck() {
-      const shouldBeZen = localStorage.getItem('coca_pepsi_dmoj_zen') === 'true';
-
-      // Check a) Body class was stripped
-      const hasClass = document.body.classList.contains('coca-pepsi-zen');
-      if (shouldBeZen && !hasClass) {
-        applyZenState(true);
-        return;
-      }
-
-      // Check b) Button was wiped out
-      if (!document.getElementById(BTN_CONTAINER_ID)) {
-        applyZenState(shouldBeZen);
-        return;
-      }
-
-      // Check c) CSS was destroyed
-      if (!document.getElementById(STYLE_ID)) {
-        applyZenState(shouldBeZen);
-        return;
-      }
-
-      // Check d) New rows appeared without tagging
-      tagRankingRows();
-    }
-
-    const sentinel = new MutationObserver(() => {
-      // Debounce: wait 200ms after the last mutation before checking
-      if (sentinelDebounce) clearTimeout(sentinelDebounce);
-      sentinelDebounce = setTimeout(sentinelCheck, 200);
-    });
-
-    sentinel.observe(document.body, {
-      childList: true,
-      subtree: true,
-      attributes: true,
-      attributeFilter: ['class']
-    });
-
-    // Also watch <head> for style removal
-    if (document.head) {
-      sentinel.observe(document.head, {
-        childList: true,
-        subtree: false
-      });
-    }
   }
 
   // ==========================================
