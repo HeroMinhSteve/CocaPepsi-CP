@@ -1,8 +1,8 @@
 (function () {
   // ==========================================
   // Luogu Helper (luogu.com.cn)
-  // SPA-aware with DOM polling, focus-aware
-  // timer, and live submission state fetcher
+  // SPA-aware with DOM polling and
+  // focus-aware timer
   // ==========================================
 
   // ==========================================
@@ -21,7 +21,6 @@
   let currentHud = null;
   let currentProblemId = null;
   let timerInterval = null;
-  let statusInterval = null;
 
   // Shared timer state
   let _timer = {
@@ -33,8 +32,6 @@
     LS_START: '',
     pauseBtn: null,
     timerLabel: null,
-    statusBadge: null,
-    acFrozen: false,
   };
 
   function pauseTimer() {
@@ -84,94 +81,7 @@
     }
   });
 
-  // ==========================================
-  // 4. Luogu Submission State Fetcher
-  // ==========================================
 
-  const STATUS_MAP = {
-    0: { text: 'Pending', color: '#aaa', icon: '⏳' },
-    1: { text: 'Judging', color: '#74b9ff', icon: '⚙️' },
-    2: { text: 'CE', color: '#ffa500', icon: '🔧' },
-    3: { text: 'OLE', color: '#ff6b6b', icon: '📦' },
-    4: { text: 'MLE', color: '#ff6b6b', icon: '💾' },
-    5: { text: 'TLE', color: '#ff9f43', icon: '⏰' },
-    6: { text: 'WA', color: '#ff4757', icon: '❌' },
-    7: { text: 'RE', color: '#ff6b6b', icon: '💥' },
-    11: { text: 'Partial', color: '#ffa500', icon: '🔶' },
-    12: { text: 'AC', color: '#00ffcc', icon: '✅' },
-    14: { text: 'UKE', color: '#aaa', icon: '❓' },
-  };
-
-  function checkLuoguStatus(problemId) {
-    // Luogu API: fetch latest submissions for this problem
-    const url = `https://www.luogu.com.cn/record/list?pid=${problemId}&page=1&_contentOnly=1`;
-
-    fetch(url, { credentials: 'include' })
-      .then(res => res.json())
-      .then(data => {
-        if (!_timer.statusBadge) return;
-        if (!data || !data.currentData || !data.currentData.records || !data.currentData.records.data) {
-          _timer.statusBadge.innerText = 'STATUS: —';
-          _timer.statusBadge.style.color = '#888';
-          return;
-        }
-
-        const records = data.currentData.records.data;
-        if (records.length === 0) {
-          _timer.statusBadge.innerText = 'STATUS: NO SUBMISSIONS';
-          _timer.statusBadge.style.color = '#888';
-          return;
-        }
-
-        // Get the latest submission
-        const latest = records[0];
-        const statusCode = latest.status;
-        const score = latest.score !== undefined ? latest.score : null;
-        const info = STATUS_MAP[statusCode] || { text: `Code ${statusCode}`, color: '#aaa', icon: '❓' };
-
-        const scoreText = score !== null ? ` (${score}pts)` : '';
-        _timer.statusBadge.innerText = `${info.icon} [ ${info.text}${scoreText} ]`;
-        _timer.statusBadge.style.color = info.color;
-
-        // Auto-Stop on AC
-        if (statusCode === 12 && !_timer.acFrozen) {
-          _timer.acFrozen = true;
-
-          // Freeze the timer
-          if (_timer.isRunning) {
-            _timer.accumulatedTime += Date.now() - _timer.startTime;
-            _timer.isRunning = false;
-            localStorage.setItem(_timer.LS_RUNNING, 'false');
-            localStorage.setItem(_timer.LS_ACCUMULATED, String(_timer.accumulatedTime));
-            if (_timer.pauseBtn) _timer.pauseBtn.innerText = '✓ Solved';
-          }
-
-          // Save the official solve time
-          const solveTime = formatTime(getTotalSeconds());
-          localStorage.setItem(`coca_pepsi_luogu_ac_time_${problemId}`, solveTime);
-
-          // Make the timer label green
-          if (_timer.timerLabel) {
-            _timer.timerLabel.style.color = '#00e676';
-          }
-
-          // Stop polling
-          if (statusInterval) {
-            clearInterval(statusInterval);
-            statusInterval = null;
-          }
-
-          console.log(`CocaPepsi CP: AC detected for ${problemId}! Solve time: ${solveTime}`);
-        }
-      })
-      .catch(err => {
-        console.log('CocaPepsi CP: Error fetching Luogu status:', err);
-        if (_timer.statusBadge) {
-          _timer.statusBadge.innerText = 'STATUS: ERROR';
-          _timer.statusBadge.style.color = '#ff4757';
-        }
-      });
-  }
 
   // ==========================================
   // 5. HUD Builder
@@ -186,10 +96,8 @@
       currentHud.remove();
     }
     if (timerInterval) clearInterval(timerInterval);
-    if (statusInterval) clearInterval(statusInterval);
 
     currentProblemId = problemId;
-    _timer.acFrozen = false;
 
     const hud = document.createElement('div');
     hud.id = 'coca-pepsi-hud';
@@ -215,13 +123,7 @@
     hud.appendChild(timerLabel);
     _timer.timerLabel = timerLabel;
 
-    // --- Status Badge ---
-    const statusBadge = document.createElement('div');
-    statusBadge.id = 'coca-pepsi-status';
-    statusBadge.style.cssText = "font-size: 12px; font-weight: bold; font-family: Consolas, monospace; margin-bottom: 10px; color: #888; letter-spacing: 0.5px;";
-    statusBadge.innerText = 'STATUS: FETCHING...';
-    hud.appendChild(statusBadge);
-    _timer.statusBadge = statusBadge;
+
 
     // --- Persistent Timer State (per-problem) ---
     const LS_RUNNING = `coca_pepsi_timer_running_${problemId}`;
@@ -236,17 +138,8 @@
     _timer.accumulatedTime = parseInt(localStorage.getItem(LS_ACCUMULATED) || '0', 10);
     _timer.startTime = parseInt(localStorage.getItem(LS_START) || '0', 10);
 
-    // Check if already AC'd
-    const savedAcTime = localStorage.getItem(`coca_pepsi_luogu_ac_time_${problemId}`);
-    if (savedAcTime) {
-      _timer.acFrozen = true;
-      _timer.isRunning = false;
-      localStorage.setItem(LS_RUNNING, 'false');
-      timerLabel.style.color = '#00e676';
-    }
-
     // On first ever visit (no state saved), auto-start the timer
-    if (localStorage.getItem(LS_RUNNING) === null && !_timer.acFrozen) {
+    if (localStorage.getItem(LS_RUNNING) === null) {
       _timer.isRunning = true;
       _timer.startTime = Date.now();
       localStorage.setItem(LS_RUNNING, 'true');
@@ -269,14 +162,13 @@
 
     const pauseBtn = document.createElement('button');
     pauseBtn.style.cssText = btnStyle;
-    pauseBtn.innerText = _timer.acFrozen ? '✓ Solved' : (_timer.isRunning ? '⏸ Pause' : '▶ Resume');
+    pauseBtn.innerText = _timer.isRunning ? '⏸ Pause' : '▶ Resume';
     _timer.pauseBtn = pauseBtn;
 
     pauseBtn.addEventListener('mouseenter', () => { pauseBtn.style.background = '#333'; pauseBtn.style.color = '#fff'; pauseBtn.style.borderColor = '#888'; });
     pauseBtn.addEventListener('mouseleave', () => { pauseBtn.style.background = '#222'; pauseBtn.style.color = '#eee'; pauseBtn.style.borderColor = '#666'; });
 
     pauseBtn.addEventListener('click', () => {
-      if (_timer.acFrozen) return;
       if (_timer.isRunning) {
         pauseTimer();
       } else {
@@ -296,16 +188,12 @@
       _timer.accumulatedTime = 0;
       _timer.startTime = Date.now();
       _timer.isRunning = false;
-      _timer.acFrozen = false;
       localStorage.setItem(LS_RUNNING, 'false');
       localStorage.setItem(LS_ACCUMULATED, '0');
       localStorage.removeItem(LS_START);
-      localStorage.removeItem(`coca_pepsi_luogu_ac_time_${problemId}`);
       pauseBtn.innerText = '▶ Resume';
       timerLabel.innerText = '00:00:00';
       timerLabel.style.color = '#00ffcc';
-      statusBadge.innerText = 'STATUS: RESET';
-      statusBadge.style.color = '#888';
     });
 
     btnContainer.appendChild(pauseBtn);
@@ -361,9 +249,7 @@
       localStorage.setItem('coca_pepsi_hud_y', parseInt(hud.style.top, 10));
     });
 
-    // --- Start Status Polling ---
-    checkLuoguStatus(problemId);
-    statusInterval = setInterval(() => checkLuoguStatus(problemId), 8000);
+
   }
 
   // ==========================================
@@ -481,10 +367,6 @@
         if (timerInterval) {
           clearInterval(timerInterval);
           timerInterval = null;
-        }
-        if (statusInterval) {
-          clearInterval(statusInterval);
-          statusInterval = null;
         }
       }
     }

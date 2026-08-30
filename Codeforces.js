@@ -406,6 +406,11 @@
     });
 
     // --- API Polling on Submit ---
+    // Extract the contest ID and problem index from the URL
+    const urlMatch = window.location.pathname.match(/(?:contest|gym)\/(\d+)\/problem\/([A-Za-z0-9]+)/);
+    const currentContestId = urlMatch ? parseInt(urlMatch[1], 10) : null;
+    const currentProblemIndex = urlMatch ? urlMatch[2] : null;
+
     const forms = $all('.submit-form, .submitForm');
     forms.forEach(form => {
       form.addEventListener('submit', () => {
@@ -413,13 +418,39 @@
         statusEl.style.color = '#ffcc00';
         saveState();
 
+        let pollCount = 0;
+        const MAX_POLLS = 60; // ~3 minutes at 3s intervals
+
         const checker = setInterval(async () => {
+          pollCount++;
+          if (pollCount > MAX_POLLS) {
+            clearInterval(checker);
+            statusEl.textContent = 'Timed out waiting for verdict';
+            statusEl.style.color = '#ff9900';
+            saveState();
+            return;
+          }
+
           try {
-            const res = await fetch(`https://codeforces.com/api/user.status?handle=${handle}&from=1&count=1`);
+            const res = await fetch(`https://codeforces.com/api/user.status?handle=${handle}&from=1&count=5`);
             const data = await res.json();
 
             if (data.status === 'OK' && data.result.length > 0) {
-              const submission = data.result[0];
+              // Find the submission that matches the current problem
+              let submission = null;
+              for (const sub of data.result) {
+                const matchesContest = !currentContestId || sub.contestId === currentContestId;
+                const matchesIndex = !currentProblemIndex || sub.problem.index === currentProblemIndex;
+                if (matchesContest && matchesIndex) {
+                  submission = sub;
+                  break;
+                }
+              }
+
+              if (!submission) {
+                statusEl.textContent = `Waiting for submission... (${pollCount})`;
+                return;
+              }
 
               if (submission.verdict === 'TESTING') {
                 statusEl.textContent = `Testing on case ${submission.passedTestCount + 1}...`;
@@ -686,6 +717,7 @@
           timestamp: Date.now()
         }));
         applyRatings(ratingsMap);
+        // ratingsMap goes out of scope here and can be GC'd
       })
       .catch(e => console.log('Error fetching CF problem ratings', e));
   }
@@ -907,8 +939,12 @@
   // Watch the DOM for changes (helps if Codeforces dynamically loads elements)
   const observer = new MutationObserver(() => {
     if (document.querySelector('input[name="sourceFile"]')) {
-      convert();
-      notices();
+      if (convert()) {
+        notices();
+        observer.disconnect(); // Stop observing once conversion is done
+      } else {
+        notices();
+      }
     }
   });
 
