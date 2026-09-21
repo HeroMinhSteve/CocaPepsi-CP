@@ -736,7 +736,7 @@
     // --- Inject CSS: standings row-hiding + rank column hiding + button styles ---
     const style = document.createElement('style');
     style.textContent = `
-      .coca-pepsi-zen table.standings tr[participantid]:not(.highlighted-row):not(.current) {
+      .coca-pepsi-zen table.standings tr[participantid]:not(.highlighted-row):not(.current):not(.coca-pepsi-zen-mine) {
         display: none !important;
       }
       .coca-pepsi-zen table.standings th:nth-child(1),
@@ -802,6 +802,45 @@
     const isOn = localStorage.getItem('coca_pepsi_zen') === 'true';
     if (isOn) {
       document.body.classList.add('coca-pepsi-zen');
+    }
+
+    // --- Team-aware row marking: find the logged-in user's handle and mark
+    //     any standings row containing their profile link (covers team contests
+    //     where .highlighted-row may not be applied to the team's row) ---
+    function markUserRows() {
+      if (!standingsTable) return;
+      const profileLink = document.querySelector('a[href^="/profile/"]');
+      if (!profileLink) return;
+      const handle = profileLink.textContent.trim().toLowerCase();
+      if (!handle) return;
+
+      const rows = standingsTable.querySelectorAll('tr[participantid]');
+      rows.forEach(row => {
+        // Check all profile links inside this row (team members are listed as links)
+        const links = row.querySelectorAll('a[href^="/profile/"]');
+        for (const link of links) {
+          if (link.textContent.trim().toLowerCase() === handle) {
+            row.classList.add('coca-pepsi-zen-mine');
+            return;
+          }
+        }
+        // Fallback: also check team name links that might contain the handle
+        const teamLinks = row.querySelectorAll('a[href*="/team/"], a[title]');
+        for (const link of teamLinks) {
+          const title = (link.getAttribute('title') || '').toLowerCase();
+          if (title.includes(handle)) {
+            row.classList.add('coca-pepsi-zen-mine');
+            return;
+          }
+        }
+      });
+    }
+
+    // Mark user rows immediately and re-mark when standings table updates
+    markUserRows();
+    if (standingsTable) {
+      const standingsObserver = new MutationObserver(markUserRows);
+      standingsObserver.observe(standingsTable, { childList: true, subtree: true });
     }
 
     // --- JS DOM-Stripping: Hide/Restore solver count column on problems table ---

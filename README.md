@@ -1,6 +1,6 @@
 # 🥤 CocaPepsi CP
 
-**CocaPepsi CP** is a premium, feature-rich Chrome extension designed to supercharge your competitive programming workflow on **Codeforces**, **CSES (cses.fi)**, **UOJ-based (qoj.ac, loj.ac)**, **AtCoder (atcoder.jp)**, **oj.uz**, **DMOJ-based OJs** (dmoj.ca, oj.vnoi.info, qhhoj.com), **USACO**, and **Luogu**. By introducing custom in-page editors, live status tracking, seamless PDF rendering, and keyboard shortcuts, it eliminates unnecessary page loads and clicks, letting you focus entirely on solving problems.
+**CocaPepsi CP** is a premium, feature-rich Chrome extension designed to supercharge your competitive programming workflow on **Codeforces**, **CSES (cses.fi)**, **UOJ-based (qoj.ac, loj.ac)**, **AtCoder (atcoder.jp)**, **oj.uz**, **DMOJ-based OJs** (dmoj.ca, oj.vnoi.info, qhhoj.com), **USACO**, **POJ (poj.org)**, and **Luogu**. By introducing custom in-page editors, live status tracking, seamless PDF rendering, and keyboard shortcuts, it eliminates unnecessary page loads and clicks, letting you focus entirely on solving problems.
 
 ---
 
@@ -16,6 +16,7 @@
 - **VNOI** (`oj.vnoi.info`)
 - **QHHOJ** (`qhhoj.com`)
 - **USACO** (`usaco.org`)
+- **POJ** (`poj.org`, `www.poj.org`)
 - **Luogu** (`luogu.com.cn`)
 
 ---
@@ -97,7 +98,8 @@
 
 * **💻 Sleek In-Page Code Editor & HUD:**
   - Converts the default file-upload input into a dark-themed, resizable monospace text area for direct code pasting.
-  - Injects a decoupled floating HUD containing a global language selector and a persistent per-problem timer.
+  - Injects a decoupled floating, draggable HUD containing a global language selector and a persistent per-problem timer.
+  - The HUD position persists universally across all supported OJs.
   - Automatically synchronizes your target language selection from the HUD with CSES's native language dropdown.
   - HUD and editor are permanently locked to Dark Mode for consistent aesthetic contrast.
 * **⏱️ Persistent Per-Problem Timer:**
@@ -116,7 +118,8 @@
 * **💻 Decoupled HUD & Editor in Light Theme:**
   - Converts the legacy file-upload input into a custom code editor textarea.
   - Permanently styled with a clean Light Theme (white background, dark text, light-gray borders) to seamlessly match the native USACO layout.
-  - HUD includes a persistent per-problem timer (namespaced to the USACO problem ID) and a global language selector.
+  - HUD includes a fully draggable, persistent per-problem timer (namespaced to the USACO problem ID) and a global language selector.
+  - The HUD position persists universally across all supported OJs.
 * **🎯 C++17 Priority Targeting:**
   - When "C++" is selected in the HUD, the synchronization engine automatically scans the native dropdown and selects C++17. If C++17 is not found, it falls back to a generic C++ version (preventing accidental default C++11 selects).
 * **⚡ Safe Submission & Ctrl + Enter:**
@@ -125,12 +128,26 @@
 
 ---
 
+### 🎓 POJ Enhancements
+
+* **💻 Draggable Dark Mode HUD & Timer:**
+  - Injects a floating, draggable HUD with a permanent Dark Theme aesthetic (`#1e1e1e` background, `#00ffcc` timer text).
+  - Uses absolute timestamp elapsed calculation (`Date.now() - startTime`) to track time accurately.
+  - Position is fully draggable and persists across all HUD-enabled OJs using `localStorage`.
+* **🚀 Smart Submit Navigation:**
+  - `Alt + S` instantly finds the submit link and navigates you to the submit page.
+* **⚡ Instant Submit:**
+  - `Ctrl + Enter` safely triggers the physical submit button on the submission page.
+
+---
+
 ### 洛谷 Luogu Enhancements
 
 * **⚡ SPA-Aware Architecture:**
   - Flawlessly integrates with Luogu's Vue.js Single Page Application routing, automatically re-initializing the HUD without requiring page reloads.
-* **💻 Decoupled HUD & Timer:**
+* **💻 Decoupled Draggable HUD & Timer:**
   - Persistent, per-problem timer that automatically pauses when you switch tabs or lose focus, and resumes when you return.
+  - The HUD position persists universally across all supported OJs.
 * **📡 Live Submission State Fetcher & Auto-Stop:**
   - Automatically polls the Luogu API every 8 seconds for the latest submission status on the current problem.
   - Renders a live status badge (e.g., `⏳ [ Pending ]`, `❌ [ WA ]`).
@@ -160,6 +177,8 @@
 | **DMOJ / VNOI / QHHOJ** | `Alt + Z` or `\` | Toggles Zen Mode (distraction-free reading & rankings). |
 | **DMOJ / VNOI / QHHOJ** | `Ctrl + Enter` *(or `Cmd + Enter`)* | Instantly submits the code from the Ace editor. |
 | **USACO** | `Ctrl + Enter` *(or `Cmd + Enter`)* | Automatically builds the payload, syncs C++17 dropdown, and safely clicks submit. |
+| **POJ** | `Alt + S` | Smoothly scrolls to the submit link and clicks it, or redirects. |
+| **POJ** | `Ctrl + Enter` *(or `Cmd + Enter`)* | Safely submits the code on the submit page. |
 | **Luogu** | `Alt + S` | Smoothly scrolls to the submit button and clicks it, or navigates to the submit anchor. |
 | **Luogu** | `Ctrl + Enter` *(or `Cmd + Enter`)* | Safely submits the code from the editor area. |
 
@@ -178,6 +197,7 @@ CocaPepsi CP/
 ├── ojuz.js            # oj.uz task navigation, editor focus & quick submit
 ├── DMOJ.js            # DMOJ/VNOI/QHHOJ navigation, editor focus & quick submit
 ├── usaco.js           # USACO light-themed custom editor, HUD timer, and language synchronizer
+├── poj.js             # POJ dark mode draggable HUD, timer, and quick submit logic
 ├── luogu.js           # Luogu SPA-aware HUD, live status fetcher, and focus-aware timer
 ├── LICENSE.txt        # MIT License
 ├── README.md          # Project documentation

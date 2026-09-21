@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "CocaPepsi CP",
-  "version": "3.1.2",
+  "version": "3.1.3",
   "description": "Helper Extension for Competitive Programming",
   "background": {
     "service_worker": "background.js"
@@ -109,6 +109,16 @@
       ],
       "js": [
         "vjudge.js"
+      ],
+      "run_at": "document_idle"
+    },
+    {
+      "matches": [
+        "*://poj.org/*",
+        "*://www.poj.org/*"
+      ],
+      "js": [
+        "poj.js"
       ],
       "run_at": "document_idle"
     }
