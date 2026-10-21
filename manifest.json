@@ -62,8 +62,6 @@
         "*://*.dmoj.ca/*",
         "*://oj.vnoi.info/*",
         "*://*.oj.vnoi.info/*",
-        "*://qhhoj.com/*",
-        "*://*.qhhoj.com/*",
         "*://oj.clue.edu.vn/*",
         "*://*.oj.clue.edu.vn/*",
         "*://hnoj.edu.vn/*",
@@ -71,6 +69,16 @@
       ],
       "js": [
         "DMOJ.js"
+      ],
+      "run_at": "document_idle"
+    },
+    {
+      "matches": [
+        "*://qhhoj.com/*",
+        "*://*.qhhoj.com/*"
+      ],
+      "js": [
+        "qhhoj.js"
       ],
       "run_at": "document_idle"
     },

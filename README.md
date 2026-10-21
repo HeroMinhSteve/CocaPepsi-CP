@@ -81,7 +81,7 @@
 
 ---
 
-### 🍁 DMOJ Enhancements
+### 🍁 DMOJ & VNOI Enhancements
 
 * **🧘 Zen Mode (Distraction-Free Reading & Ranking):**
   - Press `Alt + Z` or `\` *(Backslash)* (or click the floating button) to toggle Zen Mode.
@@ -91,6 +91,25 @@
   - Intelligent `MutationObserver` automatically catches dynamic ranking score updates (the ~30s auto-refresh) and re-tags/re-hides competitor rows seamlessly.
   - State persists across page loads via `localStorage`.
   - Sleek floating toggle pill in the bottom-left corner with green/gray accent.
+
+---
+
+### ⚡ QHHOJ Enhancements (frontend-v2)
+
+* **🧘 Zen Standings & Live Rival Whitelist:**
+  - Full compatibility with QHHOJ's modern `frontend-v2` (Vue 3, Tailwind CSS, PrimeVue) and `backend-v2`.
+  - **Comprehensive Standings Hiding:** Hides all competitors on contest ranking tables (`/contests/:key/ranking`), site-wide user leaderboards (`/users`), replay boards (`/contests/:key/replay`), and public rankings.
+  - **Podium Elimination:** Automatically hides the top-3 podium cards (`RankingPodium.vue`) above the table to avoid spoiler rankings.
+  - **Dynamic Rival Whitelist:** A floating, draggable Zen control panel lets you type comma-separated rival usernames in real-time, instantly displaying them alongside your row.
+  - **Smart Viewer Detection:** Automatically identifies your logged-in username across Vue 3 desktop `UserMenu`, mobile phone menu identity, and table-level indicators (`bg-surface-hover`, `bg-accent-soft`, and `<Chip>Bạn</Chip>`).
+  - **Rank Masking:** Masks numerical rank positions with `—` in table rows and jump buttons (`[data-testid="my-row"]` and `[data-testid="my-rank"]`) to eliminate ranking anxiety.
+  - **Instant State Restoration:** Cleanly unhides all rows, reveals the podium, and restores exact ranks upon toggling Zen Mode OFF.
+  - Toggle with `Alt + Z` or `\` *(Backslash)*, or via the interactive floating panel.
+* **⏱️ Problem Timer & HUD:**
+  - Draggable, persistent per-problem timer HUD with absolute elapsed time calculation.
+* **🚀 Submit Drawer Shortcuts:**
+  - `Alt + S` triggers the submit sidebar/drawer and auto-focuses the Monaco code editor.
+  - `Ctrl + Enter` (or `Cmd + Enter`) triggers safe submission from within the editor drawer.
 
 ---
 
@@ -173,9 +192,12 @@
 | **AtCoder** | `Ctrl + Enter` *(or `Cmd + Enter`)* | Instantly submits the code from the Ace editor. |
 | **oj.uz** | `Alt + S` | Navigates from a problem page to the submit page. |
 | **oj.uz** | `Ctrl + Enter` *(or `Cmd + Enter`)* | Instantly submits code via physical `.click()` with event propagation stopped (preventing accidental logouts/CSRF dropouts). |
-| **DMOJ / VNOI / QHHOJ** | `Alt + S` | Opens the submit page in a new tab from a problem page. |
-| **DMOJ / VNOI / QHHOJ** | `Alt + Z` or `\` | Toggles Zen Mode (distraction-free reading & rankings). |
-| **DMOJ / VNOI / QHHOJ** | `Ctrl + Enter` *(or `Cmd + Enter`)* | Instantly submits the code from the Ace editor. |
+| **DMOJ / VNOI** | `Alt + S` | Opens the submit page in a new tab from a problem page. |
+| **DMOJ / VNOI** | `Alt + Z` or `\` | Toggles Zen Mode (distraction-free reading & rankings). |
+| **DMOJ / VNOI** | `Ctrl + Enter` *(or `Cmd + Enter`)* | Instantly submits the code from the Ace editor. |
+| **QHHOJ** | `Alt + S` | Toggles the submission drawer and auto-focuses the Monaco code editor. |
+| **QHHOJ** | `Ctrl + Enter` *(or `Cmd + Enter`)* | Instantly submits the solution inside the open editor drawer. |
+| **QHHOJ** | `Alt + Z` or `\` | Toggles Zen Standings mode (podium hiding, competitor rows hiding, rank masking). |
 | **USACO** | `Ctrl + Enter` *(or `Cmd + Enter`)* | Automatically builds the payload, syncs C++17 dropdown, and safely clicks submit. |
 | **POJ** | `Alt + S` | Smoothly scrolls to the submit link and clicks it, or redirects. |
 | **POJ** | `Ctrl + Enter` *(or `Cmd + Enter`)* | Safely submits the code on the submit page. |
@@ -195,7 +217,8 @@ CocaPepsi CP/
 ├── QOJ.js             # UOJ-based (QOJ/LOJ) file spoofing and safe submit logic
 ├── AtCoder.js         # AtCoder task navigation, editor focus & quick submit
 ├── ojuz.js            # oj.uz task navigation, editor focus & quick submit
-├── DMOJ.js            # DMOJ/VNOI/QHHOJ navigation, editor focus & quick submit
+├── DMOJ.js            # DMOJ & VNOI navigation, editor focus & Zen mode
+├── qhhoj.js           # QHHOJ v2 Zen standings, podium elimination, rival whitelist & submit drawer
 ├── usaco.js           # USACO light-themed custom editor, HUD timer, and language synchronizer
 ├── poj.js             # POJ dark mode draggable HUD, timer, and quick submit logic
 ├── luogu.js           # Luogu SPA-aware HUD, live status fetcher, and focus-aware timer
