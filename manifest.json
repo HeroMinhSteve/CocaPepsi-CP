@@ -129,6 +129,16 @@
         "poj.js"
       ],
       "run_at": "document_idle"
+    },
+    {
+      "matches": [
+        "*://kilonova.ro/*",
+        "*://*.kilonova.ro/*"
+      ],
+      "js": [
+        "kilonova.js"
+      ],
+      "run_at": "document_idle"
     }
   ],
   "permissions": [],

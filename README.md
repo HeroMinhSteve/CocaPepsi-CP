@@ -1,6 +1,6 @@
 # 🥤 CocaPepsi CP
 
-**CocaPepsi CP** is a premium, feature-rich Chrome extension designed to supercharge your competitive programming workflow on **Codeforces**, **CSES (cses.fi)**, **UOJ-based (qoj.ac, loj.ac)**, **AtCoder (atcoder.jp)**, **oj.uz**, **DMOJ-based OJs** (dmoj.ca, oj.vnoi.info, qhhoj.com), **USACO**, **POJ (poj.org)**, and **Luogu**. By introducing custom in-page editors, live status tracking, seamless PDF rendering, and keyboard shortcuts, it eliminates unnecessary page loads and clicks, letting you focus entirely on solving problems.
+**CocaPepsi CP** is a premium, feature-rich Chrome extension designed to supercharge your competitive programming workflow on **Codeforces**, **CSES (cses.fi)**, **UOJ-based (qoj.ac, loj.ac)**, **AtCoder (atcoder.jp)**, **oj.uz**, **DMOJ-based OJs** (dmoj.ca, oj.vnoi.info, qhhoj.com), **USACO**, **POJ (poj.org)**, **Luogu**, and **Kilonova (kilonova.ro)**. By introducing custom in-page editors, live status tracking, seamless PDF rendering, and keyboard shortcuts, it eliminates unnecessary page loads and clicks, letting you focus entirely on solving problems.
 
 ---
 
@@ -18,6 +18,7 @@
 - **USACO** (`usaco.org`)
 - **POJ** (`poj.org`, `www.poj.org`)
 - **Luogu** (`luogu.com.cn`)
+- **Kilonova** (`kilonova.ro`)
 
 ---
 
@@ -177,6 +178,27 @@
 
 ---
 
+### 🇷🇴 Kilonova Enhancements (kilonova.ro)
+
+* **⚡ SPA-Aware Polling & Dynamic Problem ID Extraction:**
+  - Automatically handles Single Page Application navigation through a periodic `tick()` loop alongside `popstate`, `hashchange`, and `htmx:afterSwap` lifecycle listeners.
+  - Dynamically extracts problem identifiers from standalone (`/problems/:id`) and contest (`/contests/:id/problems/:id`) URL paths.
+  - Automatically re-mounts the HUD if destroyed by dynamic DOM morphing or transitions.
+* **💻 Draggable Dark Mode HUD & Persistent Timer:**
+  - Floating HUD with permanent dark theme aesthetic (`rgba(18, 18, 22, 0.96)` background, subtle cyan glow, and `#00ffcc` glowing monospace timer text).
+  - Cross-OJ drag-and-drop mobility saving bounded `coca_pepsi_hud_x` and `coca_pepsi_hud_y` coordinates to `localStorage`.
+  - Persistent per-problem timer state namespaced by `problemId` with drift-proof absolute timestamp calculation (`Date.now() - startTime`).
+  - Immediate display re-sync upon tab focus (`visibilitychange`).
+* **🚀 Smart Submit Navigation (`Alt + S`):**
+  - Capture-phase hotkey hunting for Kilonova's native submit tab, button, or file upload trigger across English and Romanian localization terms (*Submit*, *Trimite*, *Trimite Solutia*, *Incarca Cod*, *Upload Code*, *Încărcare Cod*).
+  - Executes smooth scrolling, triggers `.click()`, and polls to focus the active code editor (Ace, Monaco, CodeMirror, standard textarea, or file input).
+  - If no submit trigger exists on the statement page, seamlessly routes to `/problems/:id/submit`.
+* **⚡ Instant Payload Launch (`Ctrl + Enter`):**
+  - Capture-phase keydown listener for `Ctrl + Enter` (and `Cmd + Enter`) with event propagation stopped.
+  - Targets the final physical submit button inside the active submission form and triggers native `.click()`.
+
+---
+
 ## ⌨️ Keyboard Shortcuts
 
 | Platform | Shortcut | Action |
@@ -203,6 +225,8 @@
 | **POJ** | `Ctrl + Enter` *(or `Cmd + Enter`)* | Safely submits the code on the submit page. |
 | **Luogu** | `Alt + S` | Smoothly scrolls to the submit button and clicks it, or navigates to the submit anchor. |
 | **Luogu** | `Ctrl + Enter` *(or `Cmd + Enter`)* | Safely submits the code from the editor area. |
+| **Kilonova** | `Alt + S` | Smoothly scrolls to and clicks the submit tab/trigger, or routes to the submit page, and auto-focuses editor. |
+| **Kilonova** | `Ctrl + Enter` *(or `Cmd + Enter`)* | Safely triggers the final physical submit button inside the active submission form. |
 
 ---
 
@@ -222,6 +246,7 @@ CocaPepsi CP/
 ├── usaco.js           # USACO light-themed custom editor, HUD timer, and language synchronizer
 ├── poj.js             # POJ dark mode draggable HUD, timer, and quick submit logic
 ├── luogu.js           # Luogu SPA-aware HUD, live status fetcher, and focus-aware timer
+├── kilonova.js        # Kilonova SPA-aware dark HUD, timer, Alt+S jump to submit & quick submit
 ├── LICENSE.txt        # MIT License
 ├── README.md          # Project documentation
 └── icons/             # Custom extension logos (16px, 48px, 128px)
